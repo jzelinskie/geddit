@@ -1,5 +1,5 @@
 #reddit
-an abstraction for the [reddit.com](http://reddit.com)) API
+an abstraction for the [reddit.com](http://reddit.com) API
 
 ## warning
 
