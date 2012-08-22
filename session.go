@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type Session struct {
@@ -43,7 +44,8 @@ func (s *Session) Login(user, pass string) error {
 
 	type Response struct {
 		Json struct {
-			Data struct {
+			Errors [][]string
+			Data   struct {
 				Modhash string
 				Cookie  string
 			}
@@ -54,6 +56,14 @@ func (s *Session) Login(user, pass string) error {
 	err = json.NewDecoder(resp.Body).Decode(r)
 	if err != nil {
 		return err
+	}
+
+	if len(r.Json.Errors) != 0 {
+		var msg []string
+		for _, k := range r.Json.Errors {
+			msg = append(msg, k[1])
+		}
+		return errors.New(strings.Join(msg, ", "))
 	}
 
 	s.Username = user

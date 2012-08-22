@@ -5,7 +5,8 @@ an abstraction for the [reddit.com](http://reddit.com) API
 
 this is a **work in progress**! future features include
 
-* auth-only api calls
+* more public api calls
+* auth-only api calls (blame net/http not having a cookiejar)
 * comments
 
 ## example

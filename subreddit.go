@@ -27,11 +27,11 @@ type Subreddit struct {
 // String returns the string representation of a subreddit.
 func (s Subreddit) String() string {
 	var subs string
-	switch h.NumSubs {
+	switch s.NumSubs {
 	case 1:
 		subs = "1 subscriber"
 	default:
-		comments = fmt.Sprintf("%d subscribers", h.NumSubs)
+		subs = fmt.Sprintf("%d subscribers", s.NumSubs)
 	}
 	return fmt.Sprintf("%s (%s)", s.Title, subs)
 }

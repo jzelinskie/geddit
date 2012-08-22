@@ -33,11 +33,23 @@ func TestSubreddit(t *testing.T) {
 	}
 }
 
-func TestLogin(t *testing.T) {
+func TestAboutRedditor(t *testing.T) {
 	sesh := NewSession()
-	r, err := sesh.AboutRedditor("haight-ashbury")
+	r, err := sesh.AboutRedditor("jzelinskie")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(r)
 }
+
+/*
+// Test this manually since spamming login can get you banned
+func TestLogin(t *testing.T) {
+	sesh := NewSession()
+	err := sesh.Login("user", "pass")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(sesh)
+}
+*/
