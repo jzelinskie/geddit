@@ -22,7 +22,8 @@ import (
 func main() {
  s := reddit.NewSession()
 
- headlines, err := s.FrontPage()
+ // Get the frontpage.
+ headlines, err := s.DefaultHeadlines()
  if err != nil {
    panic(err)
  }
