@@ -94,3 +94,31 @@ func (s *Session) Clear() error {
 	// POST /api/clear_sessions
 	return nil
 }
+
+// Me returns an up-to-date redditor object of the current user.
+func (s *Session) Me() (*Redditor, error) {
+	req, err := http.NewRequest("GET", "http://www.reddit.com/api/me.json", nil)
+	if err != nil {
+		return nil, err
+	}
+	req.AddCookie(s.Cookie)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(resp.Status)
+	}
+
+	type Response struct {
+		Data Redditor
+	}
+	r := new(Response)
+	err = json.NewDecoder(resp.Body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r.Data, nil
+}

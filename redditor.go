@@ -12,6 +12,7 @@ import (
 )
 
 type Redditor struct {
+	Id           string  `json:"id"`
 	Name         string  `json:"name"`
 	LinkKarma    int     `json:"link_karma"`
 	CommentKarma int     `json:"comment_karma"`
@@ -35,7 +36,6 @@ func AboutRedditor(username string) (*Redditor, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New(resp.Status)
 	}
@@ -43,7 +43,6 @@ func AboutRedditor(username string) (*Redditor, error) {
 	type Response struct {
 		Data Redditor
 	}
-
 	r := new(Response)
 	err = json.NewDecoder(resp.Body).Decode(r)
 	if err != nil {

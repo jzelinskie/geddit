@@ -5,9 +5,7 @@
 package reddit
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	//"fmt"
 	"testing"
 )
 
@@ -38,19 +36,8 @@ func TestAuthenticatedAPI(t *testing.T) {
 		panic(err)
 	}
 
-	r, err := http.NewRequest("GET", "http://www.reddit.com/api/me.json", nil)
+	_, err = sesh.Me()
 	if err != nil {
 		panic(err)
 	}
-	r.AddCookie(sesh.Cookie)
-	resp, err := http.DefaultClient.Do(r)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(body))
 }
