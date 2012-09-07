@@ -26,7 +26,7 @@ type Headline struct {
 	DateCreated  float32 `json:"created_utc"`
 	NumComments  int     `json:"num_comments"`
 	Score        int     `json:"score"`
-	// Ups and downs are fake to trick spammers 
+	// Ups and downs are fake to trick spammers
 	Ups        int     `json:"ups"`
 	Downs      int     `json:"downs"`
 	IsNSFW     bool    `json:"over_18"`
@@ -55,8 +55,8 @@ func (h Headline) String() string {
 	return fmt.Sprintf("%d - %s (%s)", h.Score, h.Title, comments)
 }
 
-// FrontPage returns a slice of headlines on the default reddit frontpage.
-func (s *Session) FrontPage() ([]Headline, error) {
+// DefaultHeadlines returns a slice of headlines on the default reddit frontpage.
+func DefaultHeadlines() ([]Headline, error) {
 	url := "http://www.reddit.com/.json"
 	resp, err := http.Get(url)
 	if err != nil {
@@ -90,8 +90,8 @@ func (s *Session) FrontPage() ([]Headline, error) {
 	return headlines, nil
 }
 
-// Subreddit returns a slice of headlines on the given subreddit.
-func (s Session) Subreddit(subreddit string) ([]Headline, error) {
+// SubredditHeadlines returns a slice of headlines on the given subreddit.
+func SubredditHeadlines(subreddit string) ([]Headline, error) {
 	url := fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit)
 	resp, err := http.Get(url)
 	if err != nil {

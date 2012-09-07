@@ -37,7 +37,7 @@ func (s Subreddit) String() string {
 }
 
 // AboutSubreddit returns a subreddit for the given subreddit name.
-func (s Session) AboutSubreddit(subreddit string) (*Subreddit, error) {
+func AboutSubreddit(subreddit string) (*Subreddit, error) {
 	url := fmt.Sprintf("http://www.reddit.com/r/%s/about.json", subreddit)
 	resp, err := http.Get(url)
 	if err != nil {

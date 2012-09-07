@@ -21,21 +21,19 @@ type Session struct {
 	Modhash  string `json:"modhash"`
 }
 
-// NewSession returns an empty session.
-func NewSession() *Session {
-	return &Session{}
-}
-
 // String returns a string representation of a session.
 func (s Session) String() string {
 	return fmt.Sprintf("%s %s %s %s", s.Username, s.Password, s.Modhash, s.Cookie)
 }
 
-// Login authenticates the session.
-func (s *Session) Login(user, pass string) error {
-	s.Username = user
-	s.Password = pass
+// Login returns a new authenticated reddit session.
+func Login(user, pass string) (*Session, error) {
+	s := &Session{
+		Username: user,
+		Password: pass,
+	}
 
+	// Make the login request.
 	resp, err := http.PostForm("http://www.reddit.com/api/login",
 		url.Values{
 			"user":     {user},
@@ -43,20 +41,22 @@ func (s *Session) Login(user, pass string) error {
 			"api_type": {"json"},
 		})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.New(resp.Status)
+		return nil, errors.New(resp.Status)
 	}
 
+	// Get the session cookie.
 	for _, c := range resp.Cookies() {
 		if c.Name == "reddit_session" {
 			s.Cookie = c
 		}
 	}
 
+	// Get the modhash from the JSON.
 	type Response struct {
 		Json struct {
 			Errors [][]string
@@ -65,23 +65,21 @@ func (s *Session) Login(user, pass string) error {
 			}
 		}
 	}
-
 	r := new(Response)
 	err = json.NewDecoder(resp.Body).Decode(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	s.Modhash = r.Json.Data.Modhash
-
 	if len(r.Json.Errors) != 0 {
 		var msg []string
 		for _, k := range r.Json.Errors {
 			msg = append(msg, k[1])
 		}
-		return errors.New(strings.Join(msg, ", "))
+		return nil, errors.New(strings.Join(msg, ", "))
 	}
+	s.Modhash = r.Json.Data.Modhash
 
-	return nil
+	return s, nil
 }
 
 // Logout terminates the authentication of the session.

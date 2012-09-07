@@ -28,7 +28,7 @@ func (r Redditor) String() string {
 }
 
 // AboutRedditor returns a redditor for the given username.
-func (s Session) AboutRedditor(username string) (*Redditor, error) {
+func AboutRedditor(username string) (*Redditor, error) {
 	url := fmt.Sprintf("http://www.reddit.com/user/%s/about.json", username)
 	resp, err := http.Get(url)
 	if err != nil {
