@@ -22,7 +22,7 @@ type Session struct {
 }
 
 // String returns a string representation of a session.
-func (s Session) String() string {
+func (s *Session) String() string {
 	return fmt.Sprintf("%s %s %s %s", s.Username, s.Password, s.Modhash, s.Cookie)
 }
 

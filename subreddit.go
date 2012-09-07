@@ -25,7 +25,7 @@ type Subreddit struct {
 }
 
 // String returns the string representation of a subreddit.
-func (s Subreddit) String() string {
+func (s *Subreddit) String() string {
 	var subs string
 	switch s.NumSubs {
 	case 1:

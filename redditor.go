@@ -23,7 +23,7 @@ type Redditor struct {
 }
 
 // String returns the string representation of a reddit user.
-func (r Redditor) String() string {
+func (r *Redditor) String() string {
 	return fmt.Sprintf("%s (%d-%d)", r.Name, r.LinkKarma, r.CommentKarma)
 }
 
