@@ -8,6 +8,7 @@ package reddit
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -15,9 +16,9 @@ import (
 
 type Session struct {
 	Username string
-	password string
-	modhash  string
-	cookie   string
+	Password string
+	Cookie   *http.Cookie
+	Modhash  string `json:"modhash"`
 }
 
 // NewSession returns an empty session.
@@ -25,8 +26,16 @@ func NewSession() *Session {
 	return &Session{}
 }
 
+// String returns a string representation of a session.
+func (s Session) String() string {
+	return fmt.Sprintf("%s %s %s %s", s.Username, s.Password, s.Modhash, s.Cookie)
+}
+
 // Login authenticates the session.
 func (s *Session) Login(user, pass string) error {
+	s.Username = user
+	s.Password = pass
+
 	resp, err := http.PostForm("http://www.reddit.com/api/login",
 		url.Values{
 			"user":     {user},
@@ -42,12 +51,17 @@ func (s *Session) Login(user, pass string) error {
 		return errors.New(resp.Status)
 	}
 
+	for _, c := range resp.Cookies() {
+		if c.Name == "reddit_session" {
+			s.Cookie = c
+		}
+	}
+
 	type Response struct {
 		Json struct {
 			Errors [][]string
 			Data   struct {
 				Modhash string
-				Cookie  string
 			}
 		}
 	}
@@ -57,6 +71,7 @@ func (s *Session) Login(user, pass string) error {
 	if err != nil {
 		return err
 	}
+	s.Modhash = r.Json.Data.Modhash
 
 	if len(r.Json.Errors) != 0 {
 		var msg []string
@@ -65,11 +80,6 @@ func (s *Session) Login(user, pass string) error {
 		}
 		return errors.New(strings.Join(msg, ", "))
 	}
-
-	s.Username = user
-	s.password = pass
-	s.modhash = r.Json.Data.Modhash
-	s.cookie = r.Json.Data.Cookie
 
 	return nil
 }

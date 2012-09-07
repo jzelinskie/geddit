@@ -6,9 +6,12 @@ package reddit
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"testing"
 )
 
+/*
 func TestAboutSubreddit(t *testing.T) {
 	sesh := NewSession()
 	_, err := sesh.AboutSubreddit("golang")
@@ -41,15 +44,29 @@ func TestAboutRedditor(t *testing.T) {
 	}
 	fmt.Println(r)
 }
+*/
 
-/*
 // Test this manually since spamming login can get you banned
 func TestLogin(t *testing.T) {
 	sesh := NewSession()
-	err := sesh.Login("user", "pass")
+	err := sesh.Login("goreddittest", "test")
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(sesh)
+
+	r, err := http.NewRequest("GET", "http://www.reddit.com/api/me.json", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	r.AddCookie(sesh.Cookie)
+	resp, err := http.DefaultClient.Do(r)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(body))
 }
-*/
