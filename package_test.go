@@ -11,62 +11,46 @@ import (
 	"testing"
 )
 
-/*
-func TestAboutSubreddit(t *testing.T) {
-	sesh := NewSession()
-	_, err := sesh.AboutSubreddit("golang")
+func TestPublicAPI(t *testing.T) {
+	_, err := AboutSubreddit("golang")
+	if err != nil {
+		panic(err)
+	}
+	_, err = DefaultHeadlines()
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = SubredditHeadlines("golang")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = AboutRedditor("jzelinskie")
 	if err != nil {
 		panic(err)
 	}
 }
 
-func TestFrontPage(t *testing.T) {
-	sesh := NewSession()
-	_, err := sesh.FrontPage()
+func TestAuthenticatedAPI(t *testing.T) {
+	sesh, err := Login("goreddittest", "test")
 	if err != nil {
 		panic(err)
-	}
-}
-
-func TestSubreddit(t *testing.T) {
-	sesh := NewSession()
-	_, err := sesh.Subreddit("golang")
-	if err != nil {
-		panic(err)
-	}
-}
-
-func TestAboutRedditor(t *testing.T) {
-	sesh := NewSession()
-	r, err := sesh.AboutRedditor("jzelinskie")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(r)
-}
-*/
-
-// Test this manually since spamming login can get you banned
-func TestLogin(t *testing.T) {
-	sesh := NewSession()
-	err := sesh.Login("goreddittest", "test")
-	if err != nil {
-		fmt.Println(err)
 	}
 
 	r, err := http.NewRequest("GET", "http://www.reddit.com/api/me.json", nil)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 	r.AddCookie(sesh.Cookie)
 	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 	fmt.Println(string(body))
 }

@@ -14,6 +14,8 @@ import (
 	"strings"
 )
 
+// Session represents an HTTP session with reddit.com -- all authenticated API
+// calls are methods bound to this type.
 type Session struct {
 	Username string
 	Password string
