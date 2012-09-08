@@ -10,34 +10,40 @@ import (
 )
 
 func TestPublicAPI(t *testing.T) {
-	_, err := AboutSubreddit("golang")
+	sub, err := AboutSubreddit("golang")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
+	if sub.FullId != "t5_2rc7j" {
+		t.Fatalf("Subreddit id: %s, Expected: t5_2rc7j", sub.FullId)
+	}
+
 	_, err = DefaultHeadlines()
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
-
 	_, err = SubredditHeadlines("golang")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
-	_, err = AboutRedditor("jzelinskie")
+	me, err := AboutRedditor("jzelinskie")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
+	}
+	if me.Id != "5pi0h" {
+		t.Fatalf("Redditor id: %s, Expected: 5pi0h", me.Id)
 	}
 }
 
 func TestAuthenticatedAPI(t *testing.T) {
 	sesh, err := Login("goreddittest", "test")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	_, err = sesh.Me()
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 }

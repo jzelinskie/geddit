@@ -17,6 +17,7 @@ type Subreddit struct {
 	Desc        string  `json:"description"`
 	PublicDesc  string  `json:"public_description"`
 	URL         string  `json:"url"`
+	FullId      string  `json:"name"`
 	Id          string  `json:"id"`
 	HeaderImg   string  `json:"header_img"`
 	DateCreated float32 `json:"created_utc"`

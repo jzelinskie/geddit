@@ -18,7 +18,7 @@ type Headline struct {
 	Domain       string  `json:"domain"`
 	Subreddit    string  `json:"subreddit"`
 	SubredditId  string  `json:"subreddit_id"`
-	Name         string  `json:"name"`
+	FullId       string  `json:"name"`
 	Id           string  `json:"id"`
 	Permalink    string  `json:"permalink"`
 	Selftext     string  `json:"selftext"`
