@@ -9,10 +9,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 )
+
+const UpVote = "1"
+const DownVote = "-1"
+const RemoveVote = "0"
 
 // Session represents an HTTP session with reddit.com -- all authenticated API
 // calls are methods bound to this type.
@@ -121,4 +126,30 @@ func (s *Session) Me() (*Redditor, error) {
 	}
 
 	return &r.Data, nil
+}
+
+// VoteHeadline either votes or rescinds a vote for the given headline.
+func (s *Session) VoteHeadline(h Headline, v string) error {
+	formstring := url.Values{
+		"id":  {h.FullId},
+		"dir": {v},
+		"uh":  {s.Modhash},
+	}.Encode()
+	req, err := http.NewRequest("POST", "http://www.reddit.com/api/vote?"+formstring, nil)
+	req.AddCookie(s.Cookie)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(resp.Status)
+	}
+
+	if contents, err := ioutil.ReadAll(resp.Body); err != nil || string(contents) != "{}" {
+		fmt.Println(string(contents))
+		return errors.New("Failed to vote succesfully.")
+	}
+
+	return nil
 }

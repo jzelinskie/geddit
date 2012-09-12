@@ -46,4 +46,13 @@ func TestAuthenticatedAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	hl, err := DefaultHeadlines()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = sesh.VoteHeadline(hl[0], UpVote)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
