@@ -130,7 +130,8 @@ func (s *Session) Me() (*Redditor, error) {
 	return &r.Data, nil
 }
 
-// VoteHeadline either votes or rescinds a vote for the given headline.
+// VoteHeadline either votes or rescinds a vote for the given headline. The second parameter
+// expects to one of the following constants: UpVote, DownVote, RemoveVote.
 func (s *Session) VoteHeadline(h Headline, v string) error {
 	formstring := url.Values{
 		"id":  {h.FullId},
@@ -149,8 +150,7 @@ func (s *Session) VoteHeadline(h Headline, v string) error {
 	}
 
 	if contents, err := ioutil.ReadAll(resp.Body); err != nil || string(contents) != "{}" {
-		fmt.Println(string(contents))
-		return errors.New("Failed to vote succesfully.")
+		return errors.New("Failed to vote on headline.")
 	}
 
 	return nil

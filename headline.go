@@ -11,6 +11,8 @@ import (
 	"net/http"
 )
 
+// Headline represents an individual post from the perspective
+// of a subreddit.
 type Headline struct {
 	Author       string  `json:"author"`
 	Title        string  `json:"title"`
