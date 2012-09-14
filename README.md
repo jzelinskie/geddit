@@ -7,7 +7,7 @@ this is a **work in progress**! future features include
 
 * more public api calls
 * auth'd api calls
-* comments (what data structure should I use?)
+* comments
 
 ## example
 
@@ -20,15 +20,23 @@ import (
 )
 
 func main() {
- // Get the frontpage.
- headlines, err := reddit.DefaultHeadlines()
- if err != nil {
-   panic(err)
- }
+  // Login to reddit
+  session, err := reddit.Login("novelty_account", "password")
+  if err != nil {
+    panic(err)
+  }
 
- for _, hl := range headlines {
-   fmt.Println(hl)
- }
+  // Get default frontpage (not our personal one)
+  headlines, err := reddit.DefaultHeadlines()
+  if err != nil {
+    panic(err)
+  }
+
+  // Upvote the first post
+  err = session.VoteHeadline(headlines[0], reddit.UpVote)
+  if err != nil {
+    panic(err)
+  }
 }
 ```
 

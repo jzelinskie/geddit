@@ -15,9 +15,11 @@ import (
 	"strings"
 )
 
-const UpVote = "1"
-const DownVote = "-1"
-const RemoveVote = "0"
+const (
+	UpVote     = "1"
+	DownVote   = "-1"
+	RemoveVote = "0"
+)
 
 // Session represents an HTTP session with reddit.com -- all authenticated API
 // calls are methods bound to this type.
