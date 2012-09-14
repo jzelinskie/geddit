@@ -15,12 +15,6 @@ import (
 	"strings"
 )
 
-const (
-	UpVote     = "1"
-	DownVote   = "-1"
-	RemoveVote = "0"
-)
-
 // Session represents an HTTP session with reddit.com -- all authenticated API
 // calls are methods bound to this type.
 type Session struct {
@@ -97,8 +91,22 @@ func (s *Session) Logout() error {
 }
 
 // Clear clears all session cookies and updates the current session with a new one.
-func (s *Session) Clear() error {
-	// POST /api/clear_sessions
+func (s *Session) Clear(password string) error {
+	formstring := url.Values{
+		"curpass": {password},
+		"uh":      {s.Modhash},
+	}.Encode()
+	req, err := http.NewRequest("POST", "http://www.reddit.com/api/clear_sessions?"+formstring, nil)
+	req.AddCookie(s.Cookie)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(resp.Status)
+	}
+
 	return nil
 }
 
