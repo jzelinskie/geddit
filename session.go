@@ -6,6 +6,7 @@
 package reddit
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,14 +31,28 @@ func (s *Session) String() string {
 }
 
 // Login returns a new authenticated reddit session.
-func Login(user, pass string) (*Session, error) {
+func Login(user, pass string, forceValidCert bool) (*Session, error) {
 	s := &Session{
 		Username: user,
 		Password: pass,
 	}
 
+	var err error
+	var resp *http.Response
+	var client *http.Client
+
+	// Skip ssl certificate verification if !forceValidCert
+	if !forceValidCert {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = http.DefaultClient
+	}
+
 	// Make the login request.
-	resp, err := http.PostForm("http://www.reddit.com/api/login",
+	resp, err = client.PostForm("https://www.reddit.com/api/login",
 		url.Values{
 			"user":     {user},
 			"passwd":   {pass},

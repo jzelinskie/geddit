@@ -37,7 +37,8 @@ func TestPublicAPI(t *testing.T) {
 }
 
 func TestAuthenticatedAPI(t *testing.T) {
-	sesh, err := Login("goreddittest", "test")
+	// Disable ssl certificate verification
+	sesh, err := Login("goreddittest", "test", false)
 	if err != nil {
 		t.Fatal(err)
 	}
