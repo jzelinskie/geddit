@@ -56,4 +56,8 @@ func TestAuthenticatedAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = sesh.Clear("test")
+	if err != nil {
+		t.Fatal(err)
+	}
 }
