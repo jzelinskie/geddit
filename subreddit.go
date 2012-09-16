@@ -6,9 +6,7 @@ package reddit
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
 )
 
 type Subreddit struct {
@@ -39,15 +37,10 @@ func (s *Subreddit) String() string {
 
 // AboutSubreddit returns a subreddit for the given subreddit name.
 func AboutSubreddit(subreddit string) (*Subreddit, error) {
-	url := fmt.Sprintf("http://www.reddit.com/r/%s/about.json", subreddit)
-	resp, err := http.Get(url)
+	loc := fmt.Sprintf("http://www.reddit.com/r/%s/about.json", subreddit)
+	body, err := getResponse(loc, nil, nil)
 	if err != nil {
 		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status)
 	}
 
 	type Response struct {
@@ -55,7 +48,7 @@ func AboutSubreddit(subreddit string) (*Subreddit, error) {
 	}
 
 	r := new(Response)
-	err = json.NewDecoder(resp.Body).Decode(r)
+	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}

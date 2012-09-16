@@ -6,9 +6,7 @@ package reddit
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
 )
 
 // Headline represents an individual post from the perspective
@@ -60,14 +58,9 @@ func (h Headline) String() string {
 // DefaultHeadlines returns a slice of headlines on the default reddit frontpage.
 func DefaultHeadlines() ([]Headline, error) {
 	url := "http://www.reddit.com/.json"
-	resp, err := http.Get(url)
+	body, err := getResponse(url, nil, nil)
 	if err != nil {
 		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status)
 	}
 
 	type Response struct {
@@ -79,7 +72,7 @@ func DefaultHeadlines() ([]Headline, error) {
 	}
 
 	r := new(Response)
-	err = json.NewDecoder(resp.Body).Decode(r)
+	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}
@@ -95,14 +88,9 @@ func DefaultHeadlines() ([]Headline, error) {
 // SubredditHeadlines returns a slice of headlines on the given subreddit.
 func SubredditHeadlines(subreddit string) ([]Headline, error) {
 	url := fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit)
-	resp, err := http.Get(url)
+	body, err := getResponse(url, nil, nil)
 	if err != nil {
 		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status)
 	}
 
 	type Response struct {
@@ -114,7 +102,7 @@ func SubredditHeadlines(subreddit string) ([]Headline, error) {
 	}
 
 	r := new(Response)
-	err = json.NewDecoder(resp.Body).Decode(r)
+	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}

@@ -28,7 +28,7 @@ func getResponse(url string, vals *url.Values, s *Session) (*bytes.Buffer, error
 		finalurl = url
 	} else {
 		action = "POST"
-		finalurl = url + vals.Encode()
+		finalurl = url + "?" + vals.Encode()
 	}
 
 	// Create a request and add the proper headers.
@@ -36,7 +36,7 @@ func getResponse(url string, vals *url.Values, s *Session) (*bytes.Buffer, error
 	if err != nil {
 		return nil, err
 	}
-	if s == nil {
+	if s != nil {
 		req.AddCookie(s.Cookie)
 	}
 	req.Header.Set("User-Agent", DefaultUserAgent)

@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -37,11 +36,8 @@ func Login(user, pass string, forceValidCert bool) (*Session, error) {
 		Password: pass,
 	}
 
-	var err error
-	var resp *http.Response
-	var client *http.Client
-
 	// Skip ssl certificate verification if !forceValidCert
+	var client *http.Client
 	if !forceValidCert {
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -52,7 +48,7 @@ func Login(user, pass string, forceValidCert bool) (*Session, error) {
 	}
 
 	// Make the login request.
-	resp, err = client.PostForm("https://www.reddit.com/api/login",
+	resp, err := client.PostForm("https://www.reddit.com/api/login",
 		url.Values{
 			"user":     {user},
 			"passwd":   {pass},
@@ -102,50 +98,40 @@ func Login(user, pass string, forceValidCert bool) (*Session, error) {
 
 // Logout terminates the authentication of the session.
 func (s *Session) Logout() error {
+	//TODO, obviously
 	return nil
 }
 
 // Clear clears all session cookies and updates the current session with a new one.
 func (s *Session) Clear(password string) error {
-	formstring := url.Values{
+	loc := "http://www.reddit.com/api/clear_sessions"
+	vals := &url.Values{
 		"curpass": {password},
 		"uh":      {s.Modhash},
-	}.Encode()
-	req, err := http.NewRequest("POST", "http://www.reddit.com/api/clear_sessions?"+formstring, nil)
-	req.AddCookie(s.Cookie)
-	resp, err := http.DefaultClient.Do(req)
+	}
+	body, err := getResponse(loc, vals, s)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return errors.New(resp.Status)
+	if !strings.Contains(body.String(), "all other sessions have been logged out") {
+		return errors.New("Failed to clear session.")
 	}
-
 	return nil
 }
 
 // Me returns an up-to-date redditor object of the current user.
 func (s *Session) Me() (*Redditor, error) {
-	req, err := http.NewRequest("GET", "http://www.reddit.com/api/me.json", nil)
+	loc := "http://www.reddit.com/api/me.json"
+	body, err := getResponse(loc, nil, s)
 	if err != nil {
 		return nil, err
-	}
-	req.AddCookie(s.Cookie)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status)
 	}
 
 	type Response struct {
 		Data Redditor
 	}
 	r := new(Response)
-	err = json.NewDecoder(resp.Body).Decode(r)
+	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}
@@ -156,25 +142,18 @@ func (s *Session) Me() (*Redditor, error) {
 // VoteHeadline either votes or rescinds a vote for the given headline. The second parameter
 // expects to one of the following constants: UpVote, DownVote, RemoveVote.
 func (s *Session) VoteHeadline(h Headline, v string) error {
-	formstring := url.Values{
+	loc := "http://www.reddit.com/api/vote"
+	vals := &url.Values{
 		"id":  {h.FullId},
 		"dir": {v},
 		"uh":  {s.Modhash},
-	}.Encode()
-	req, err := http.NewRequest("POST", "http://www.reddit.com/api/vote?"+formstring, nil)
-	req.AddCookie(s.Cookie)
-	resp, err := http.DefaultClient.Do(req)
+	}
+	body, err := getResponse(loc, vals, s)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return errors.New(resp.Status)
-	}
-
-	if contents, err := ioutil.ReadAll(resp.Body); err != nil || string(contents) != "{}" {
+	if body.String() != "{}" {
 		return errors.New("Failed to vote on headline.")
 	}
-
 	return nil
 }

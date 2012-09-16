@@ -6,9 +6,7 @@ package reddit
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
 )
 
 type Redditor struct {
@@ -31,20 +29,16 @@ func (r *Redditor) String() string {
 // AboutRedditor returns a redditor for the given username.
 func AboutRedditor(username string) (*Redditor, error) {
 	url := fmt.Sprintf("http://www.reddit.com/user/%s/about.json", username)
-	resp, err := http.Get(url)
+	body, err := getResponse(url, nil, nil)
 	if err != nil {
 		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status)
 	}
 
 	type Response struct {
 		Data Redditor
 	}
 	r := new(Response)
-	err = json.NewDecoder(resp.Body).Decode(r)
+	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}
