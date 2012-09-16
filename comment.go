@@ -11,6 +11,24 @@ import (
 )
 
 type Comment struct {
+	Author              string  `json:"author"`
+	Body                string  `json:"body"`
+	BodyHTML            string  `json:"body_html"`
+	Subreddit           string  `json:"subreddit"`
+	LinkId              string  `json:"link_id"`
+	ParentId            string  `json:"parent_id"`
+	SubredditId         string  `json:"subreddit_id"`
+	FullId              string  `json:"name"`
+	UpVotes             int     `json:"ups"`
+	DownVotes           int     `json:"downs"`
+	Created             float32 `json:"created_utc"`
+	Edited              bool    `json:"edited"`
+	BannedBy            *string `json:"banned_by"`
+	ApprovedBy          *string `json:"approved_by"`
+	AuthorFlairTxt      *string `json:"author_flair_text"`
+	AuthorFlairCSSClass *string `json:"author_flair_css_class"`
+	NumReports          *int    `json:"num_reports"`
+	Likes               *int    `json:"likes"`
 }
 
 func (s *Session) CommentHeadline(h Headline, comment string) error {
