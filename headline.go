@@ -73,15 +73,6 @@ func (h *Headline) String() string {
 		plural = "s"
 	}
 	comments := fmt.Sprintf("%d comment%s", h.NumComments, plural)
-	/*var comments string
-	switch h.NumComments {
-	case 0:
-		comments = "0 comments"
-	case 1:
-		comments = "1 comment"
-	default:
-		comments = fmt.Sprintf("%d comments", h.NumComments)
-	}*/
 	return fmt.Sprintf("%d - %s (%s)", h.Score, h.Title, comments)
 }
 
@@ -162,7 +153,7 @@ func SortedHeadlines(subreddit string, popularity PopularitySort, age AgeSort) (
 
 	if popularity != DefaultPopularity {
 		if popularity == NewHeadlines || popularity == RisingHeadlines {
-			url = fmt.Sprintf("%s.json?sort=%s", url, popularity)
+			url = fmt.Sprintf("%snew.json?sort=%s", url, popularity)
 		} else {
 			url = fmt.Sprintf("%s%s.json?sort=%s", url, popularity, popularity)
 		}
