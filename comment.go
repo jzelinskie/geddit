@@ -31,7 +31,7 @@ type Comment struct {
 	Likes               *int    `json:"likes"`
 }
 
-func (s *Session) CommentHeadline(h Headline, comment string) error {
+func (s *Session) CommentHeadline(h *Headline, comment string) error {
 	loc := "http://www.reddit.com/api/comment"
 	vals := &url.Values{
 		"thing_id": {h.FullId},
