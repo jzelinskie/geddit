@@ -6,7 +6,6 @@
 package reddit
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,10 +17,51 @@ import (
 // Session represents an HTTP session with reddit.com -- all authenticated API
 // calls are methods bound to this type.
 type Session struct {
-	Username string
-	Password string
-	Cookie   *http.Cookie
-	Modhash  string `json:"modhash"`
+	IsDefault bool
+	Username  string
+	Password  string
+	Cookie    *http.Cookie
+	Modhash   string `json:"modhash"`
+	Settings  *SessionSettings
+}
+
+// Change some session settings (unimplemented and wanting to add more) 
+type SessionSettings struct {
+	ClearPassAfterLogin bool
+	AutoReLogin         bool
+}
+
+// Use default session settings
+func DefaultSessionSettings() *SessionSettings {
+	sessionSettings := new(SessionSettings)
+	sessionSettings.ClearPassAfterLogin = false
+	sessionSettings.AutoReLogin = false
+	return sessionSettings
+}
+
+// Use a default session
+func DefaultSession() *Session {
+	Dsession := new(Session)
+	Dsession.IsDefault = true
+	Dsession.Username = ""
+	Dsession.Password = ""
+	Dsession.Cookie = nil
+	Dsession.Settings = nil
+	Dsession.Settings = DefaultSessionSettings()
+	return Dsession
+}
+
+// Make a new session
+func NewSession(username, password string, sessionSettings *SessionSettings) *Session {
+	session := new(Session)
+	session.IsDefault = false
+	session.Username = username
+	session.Password = password
+	if sessionSettings == nil {
+		session.Settings = DefaultSessionSettings()
+	}
+
+	return session
 }
 
 // String returns a string representation of a session.
@@ -30,37 +70,25 @@ func (s *Session) String() string {
 }
 
 // Login returns a new authenticated reddit session.
-func Login(user, pass string, forceValidCert bool) (*Session, error) {
-	s := &Session{
-		Username: user,
-		Password: pass,
+func (s *Session) Login() error {
+	if s.IsDefault {
+		return errors.New("Cannot login with default session")
 	}
-
-	// Skip ssl certificate verification if !forceValidCert
-	var client *http.Client
-	if !forceValidCert {
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		client = &http.Client{Transport: tr}
-	} else {
-		client = http.DefaultClient
-	}
-
 	// Make the login request.
-	resp, err := client.PostForm("https://www.reddit.com/api/login",
+	loginurl := fmt.Sprintf("http://www.reddit.com/api/login/%s", s.Username)
+	resp, err := http.PostForm(loginurl,
 		url.Values{
-			"user":     {user},
-			"passwd":   {pass},
+			"user":     {s.Username},
+			"passwd":   {s.Password},
 			"api_type": {"json"},
 		})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status)
+		return errors.New(resp.Status)
 	}
 
 	// Get the session cookie.
@@ -82,18 +110,18 @@ func Login(user, pass string, forceValidCert bool) (*Session, error) {
 	r := new(Response)
 	err = json.NewDecoder(resp.Body).Decode(r)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if len(r.Json.Errors) != 0 {
 		var msg []string
 		for _, k := range r.Json.Errors {
 			msg = append(msg, k[1])
 		}
-		return nil, errors.New(strings.Join(msg, ", "))
+		return errors.New(strings.Join(msg, ", "))
 	}
 	s.Modhash = r.Json.Data.Modhash
 
-	return s, nil
+	return nil
 }
 
 // Logout terminates the authentication of the session.
@@ -141,7 +169,7 @@ func (s *Session) Me() (*Redditor, error) {
 
 // VoteHeadline either votes or rescinds a vote for the given headline. The second parameter
 // expects to one of the following constants: UpVote, DownVote, RemoveVote.
-func (s *Session) VoteHeadline(h Headline, v string) error {
+func (s *Session) VoteHeadline(h *Headline, v string) error {
 	loc := "http://www.reddit.com/api/vote"
 	vals := &url.Values{
 		"id":  {h.FullId},
