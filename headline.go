@@ -36,14 +36,44 @@ type Headline struct {
 	BannedBy   *string `json:"banned_by"`
 }
 
+// Sort headlines by popularity
+type PopularitySort string
+
+const (
+	DefaultPopularity      PopularitySort = ""
+	HotHeadlines                          = "hot"
+	NewHeadlines                          = "new"
+	RisingHeadlines                       = "rising"
+	TopHeadlines                          = "top"
+	ControversialHeadlines                = "controversial"
+)
+
+// Sort headlines by age
+type AgeSort string
+
+const (
+	DefaultAge AgeSort = ""
+	ThisHour           = "hour"
+	ThisMonth          = "month"
+	ThisYear           = "year"
+	AllTime            = "all"
+)
+
+type Headlines []*Headline
+
 // FullPermalink returns the full URL of a headline.
-func (h Headline) FullPermalink() string {
+func (h *Headline) FullPermalink() string {
 	return "http://reddit.com" + h.Permalink
 }
 
 // String returns the string representation of a headline.
-func (h Headline) String() string {
-	var comments string
+func (h *Headline) String() string {
+	plural := ""
+	if h.NumComments != 1 {
+		plural = "s"
+	}
+	comments := fmt.Sprintf("%d comment%s", h.NumComments, plural)
+	/*var comments string
 	switch h.NumComments {
 	case 0:
 		comments = "0 comments"
@@ -51,12 +81,12 @@ func (h Headline) String() string {
 		comments = "1 comment"
 	default:
 		comments = fmt.Sprintf("%d comments", h.NumComments)
-	}
+	}*/
 	return fmt.Sprintf("%d - %s (%s)", h.Score, h.Title, comments)
 }
 
 // DefaultHeadlines returns a slice of headlines on the default reddit frontpage.
-func DefaultHeadlines() ([]Headline, error) {
+func DefaultHeadlines() (Headlines, error) {
 	url := "http://www.reddit.com/.json"
 	body, err := getResponse(url, nil, nil)
 	if err != nil {
@@ -66,7 +96,7 @@ func DefaultHeadlines() ([]Headline, error) {
 	type Response struct {
 		Data struct {
 			Children []struct {
-				Data Headline
+				Data *Headline
 			}
 		}
 	}
@@ -77,7 +107,7 @@ func DefaultHeadlines() ([]Headline, error) {
 		return nil, err
 	}
 
-	headlines := make([]Headline, len(r.Data.Children))
+	headlines := make(Headlines, len(r.Data.Children))
 	for i, child := range r.Data.Children {
 		headlines[i] = child.Data
 	}
@@ -86,7 +116,7 @@ func DefaultHeadlines() ([]Headline, error) {
 }
 
 // SubredditHeadlines returns a slice of headlines on the given subreddit.
-func SubredditHeadlines(subreddit string) ([]Headline, error) {
+func SubredditHeadlines(subreddit string) (Headlines, error) {
 	url := fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit)
 	body, err := getResponse(url, nil, nil)
 	if err != nil {
@@ -96,7 +126,7 @@ func SubredditHeadlines(subreddit string) ([]Headline, error) {
 	type Response struct {
 		Data struct {
 			Children []struct {
-				Data Headline
+				Data *Headline
 			}
 		}
 	}
@@ -107,10 +137,71 @@ func SubredditHeadlines(subreddit string) ([]Headline, error) {
 		return nil, err
 	}
 
-	headlines := make([]Headline, len(r.Data.Children))
+	headlines := make(Headlines, len(r.Data.Children))
 	for i, child := range r.Data.Children {
 		headlines[i] = child.Data
 	}
 
 	return headlines, nil
+}
+
+// SortedHeadlines will return headlines from a subreddit (or homepage if "") by popularity and age
+func SortedHeadlines(subreddit string, popularity PopularitySort, age AgeSort) (Headlines, error) {
+	if age != DefaultAge {
+		switch popularity {
+		case NewHeadlines, RisingHeadlines, HotHeadlines:
+			return nil, fmt.Errorf("Cannot sort %s by %s", popularity, age)
+		}
+	}
+
+	url := "http://reddit.com/"
+
+	if subreddit != "" {
+		url = fmt.Sprintf("http://%s.reddit.com/", subreddit)
+	}
+
+	if popularity != DefaultPopularity {
+		if popularity == NewHeadlines || popularity == RisingHeadlines {
+			url = fmt.Sprintf("%s.json?sort=%s", url, popularity)
+		} else {
+			url = fmt.Sprintf("%s%s.json?sort=%s", url, popularity, popularity)
+		}
+	} else {
+		url = fmt.Sprintf("%s.json", url)
+	}
+
+	if age != DefaultAge {
+		if popularity != DefaultPopularity {
+			url = fmt.Sprintf("%s&t=%s", url, age)
+		} else {
+			url = fmt.Sprintf("%s?t=%s", url, age)
+		}
+	}
+
+	body, err := getResponse(url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Headline
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	headlines := make(Headlines, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		headlines[i] = child.Data
+	}
+
+	return headlines, nil
+
 }
