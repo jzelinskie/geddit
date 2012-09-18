@@ -148,7 +148,7 @@ func SortedHeadlines(subreddit string, popularity PopularitySort, age AgeSort) (
 	url := "http://reddit.com/"
 
 	if subreddit != "" {
-		url = fmt.Sprintf("http://%s.reddit.com/", subreddit)
+		url = fmt.Sprintf("%sr/%s/", url, subreddit)
 	}
 
 	if popularity != DefaultPopularity {
