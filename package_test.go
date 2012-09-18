@@ -27,6 +27,11 @@ func TestPublicAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	_, err = SortedHeadlines("golang", NewHeadlines, DefaultAge)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	me, err := AboutRedditor("jzelinskie")
 	if err != nil {
 		t.Fatal(err)
@@ -37,13 +42,12 @@ func TestPublicAPI(t *testing.T) {
 }
 
 func TestAuthenticatedAPI(t *testing.T) {
-	// Disable ssl certificate verification
-	sesh, err := Login("goreddittest", "test", false)
+	session := NewSession("goreddittest", "test", nil)
+	err := session.Login()
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	_, err = sesh.Me()
+	_, err = session.Me()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,11 +56,11 @@ func TestAuthenticatedAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = sesh.VoteHeadline(hl[0], UpVote)
+	err = session.VoteHeadline(hl[0], UpVote)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = sesh.Clear("test")
+	err = session.Clear("test")
 	if err != nil {
 		t.Fatal(err)
 	}
