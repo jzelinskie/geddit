@@ -35,7 +35,7 @@ type Comment struct {
 }
 
 //Does the ugly work of setting the comment fields
-func MakeComment(cmap map[string]interface{}) *Comment {
+func makeComment(cmap map[string]interface{}) *Comment {
 	ret := new(Comment)
 	ret.Author = cmap["author"].(string)
 	ret.Body = cmap["body"].(string)
@@ -83,29 +83,29 @@ func GetComments(h *Headline) (Comments, error) {
 		return nil, err
 	}
 	helper := new(Helper)
-	helper.BuildComments(interf)
+	helper.buildComments(interf)
 
 	return helper.comments, nil
 }
 
 //Recursive function to find the fields we want and build the Comments
 //Way too hackish for my likes
-func (h *Helper) BuildComments(inf interface{}) {
+func (h *Helper) buildComments(inf interface{}) {
 	switch tp := inf.(type) {
 	case []interface{}: //Maybe array for base comments
 		for _, k := range tp {
-			h.BuildComments(k)
+			h.buildComments(k)
 		}
 	case map[string]interface{}: //Maybe comment data
 		if tp["body"] == nil {
 			for _, k := range tp {
-				h.BuildComments(k)
+				h.buildComments(k)
 			}
 		} else {
-			h.comments = append(h.comments, MakeComment(tp))
+			h.comments = append(h.comments, makeComment(tp))
 			//Easy mode: throw a new helper here instead
 			//Hard mode: throw everything not containing headline Id into a map and do it that way
-			h.BuildComments(tp["replies"])
+			h.buildComments(tp["replies"])
 		}
 	}
 }
