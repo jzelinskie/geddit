@@ -59,6 +59,10 @@ func makeComment(cmap map[string]interface{}) *Comment {
 	//ret.NumReports = cmap["num_reports"].(*int)
 	//ret.Likes = cmap["likes"].(*int)
 
+	helper := new(Helper)
+	helper.buildComments(cmap["replies"])
+	ret.Replies = helper.comments
+
 	return ret
 }
 
@@ -69,7 +73,7 @@ type Helper struct {
 	comments Comments
 }
 
-//Actual function to grab the comments, lots TODO
+//Actual function to grab the comments
 func GetComments(h *Headline) (Comments, error) {
 	url := fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.Id)
 	body, err := getResponse(url, nil, nil)
@@ -103,9 +107,6 @@ func (h *Helper) buildComments(inf interface{}) {
 			}
 		} else {
 			h.comments = append(h.comments, makeComment(tp))
-			//Easy mode: throw a new helper here instead
-			//Hard mode: throw everything not containing headline Id into a map and do it that way
-			h.buildComments(tp["replies"])
 		}
 	}
 }
