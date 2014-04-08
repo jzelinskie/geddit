@@ -5,7 +5,6 @@
 package reddit
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -33,25 +32,4 @@ func (s *Subreddit) String() string {
 		subs = fmt.Sprintf("%d subscribers", s.NumSubs)
 	}
 	return fmt.Sprintf("%s (%s)", s.Title, subs)
-}
-
-// AboutSubreddit returns a subreddit for the given subreddit name.
-func AboutSubreddit(subreddit string) (*Subreddit, error) {
-	loc := fmt.Sprintf("http://www.reddit.com/r/%s/about.json", subreddit)
-	body, err := getResponse(loc, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	type Response struct {
-		Data Subreddit
-	}
-
-	r := new(Response)
-	err = json.NewDecoder(body).Decode(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return &r.Data, nil
 }

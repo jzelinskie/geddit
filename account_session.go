@@ -1,0 +1,200 @@
+// Copyright 2012 Jimmy Zelinskie. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// Package reddit implements an abstraction for the reddit.com API.
+package reddit
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+)
+
+// Session represents an HTTP session with reddit.com -- all authenticated API
+// calls are methods bound to this type.
+type AccountSession struct {
+	username  string
+	password  string
+	useragent string
+	cookie    *http.Cookie
+	modhash   string `json:"modhash"`
+	AnonymousSession
+}
+
+// NewAccountSession creates a new session for those who want to log into a
+// reddit account.
+func NewAccountSession(username, password, useragent string) (*AccountSession, error) {
+	session := &AccountSession{
+		username:         username,
+		password:         password,
+		useragent:        useragent,
+		AnonymousSession: AnonymousSession{useragent},
+	}
+
+	loginURL := fmt.Sprintf("http://www.reddit.com/api/login/%s", username)
+	postValues := url.Values{
+		"user":     {username},
+		"passwd":   {password},
+		"api_type": {"json"},
+	}
+	resp, err := http.PostForm(loginURL, postValues)
+	defer resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(resp.Status)
+	}
+
+	// Get the session cookie.
+	for _, cookie := range resp.Cookies() {
+		if cookie.Name == "reddit_session" {
+			session.cookie = cookie
+		}
+	}
+
+	// Get the modhash from the JSON.
+	type Response struct {
+		Json struct {
+			Errors [][]string
+			Data   struct {
+				Modhash string
+			}
+		}
+	}
+
+	r := &Response{}
+	err = json.NewDecoder(resp.Body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(r.Json.Errors) != 0 {
+		var msg []string
+		for _, k := range r.Json.Errors {
+			msg = append(msg, k[1])
+		}
+		return nil, errors.New(strings.Join(msg, ", "))
+	}
+	session.modhash = r.Json.Data.Modhash
+
+	return session, nil
+}
+
+// Clear clears all session cookies and updates the current session with a new one.
+func (s AccountSession) Clear() error {
+	req := &request{
+		url: "http://www.reddit.com/api/clear_sessions",
+		values: &url.Values{
+			"curpass": {s.password},
+			"uh":      {s.modhash},
+		},
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return err
+	}
+
+	if !strings.Contains(body.String(), "all other sessions have been logged out") {
+		return errors.New("Failed to clear session.")
+	}
+	return nil
+}
+
+// Me returns an up-to-date redditor object of the current user.
+func (s AccountSession) Me() (*Redditor, error) {
+	req := &request{
+		url:       "http://www.reddit.com/api/me.json",
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data Redditor
+	}
+	r := &Response{}
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r.Data, nil
+}
+
+// VoteHeadline either votes or rescinds a vote for the given headline.
+func (s AccountSession) VoteHeadline(h *Headline, v Vote) error {
+	req := &request{
+		url: "http://www.reddit.com/api/vote",
+		values: &url.Values{
+			"id":  {h.FullId},
+			"dir": {string(v)},
+			"uh":  {s.modhash},
+		},
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return err
+	}
+	if body.String() != "{}" {
+		return errors.New("Failed to vote on headline.")
+	}
+	return nil
+}
+
+func (s AccountSession) ReplytoHeadline(h *Headline, comment string) error {
+	req := &request{
+		url: "http://www.reddit.com/api/comment",
+		values: &url.Values{
+			"thing_id": {h.FullId},
+			"text":     {comment},
+			"uh":       {s.modhash},
+		},
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return err
+	}
+
+	if !strings.Contains(body.String(), "data") {
+		return errors.New("Failed to post comment.")
+	}
+
+	return nil
+}
+
+func (s AccountSession) ReplytoComment(c *Comment, comment string) error {
+	req := &request{
+		url: "http://www.reddit.com/api/comment",
+		values: &url.Values{
+			"parent": {c.FullId},
+			"text":   {comment},
+			"uh":     {s.modhash},
+		},
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return err
+	}
+
+	if !strings.Contains(body.String(), "data") {
+		return errors.New("Failed to post comment.")
+	}
+
+	return nil
+}

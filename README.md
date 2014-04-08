@@ -1,13 +1,11 @@
-#reddit
-an abstraction for the [reddit.com](http://reddit.com) API
+# reddit
+a convenient abstraction for the [reddit.com](http://reddit.com) API
+
+Checkout the [godoc page](http://godoc.org/github.com/jzelinskie/reddit)
 
 ## warning
 
-this is a **work in progress**! future features include
-
-* more public api calls
-* auth'd api calls
-* comments
+this is a **work in progress**!
 
 ## example
 
@@ -15,35 +13,33 @@ this is a **work in progress**! future features include
 package main
 
 import (
- "fmt"
- "github.com/jzelinskie/reddit"
+	"fmt"
+	"github.com/jzelinskie/reddit"
 )
 
 func main() {
-  // Login to reddit
-  session, err := reddit.Login("novelty_account", "password")
-  if err != nil {
-    panic(err)
-  }
+	// Login to reddit
+	session, err := reddit.NewAccountSession("novelty_account", "password", "golang reddit example")
+	if err != nil {
+		panic(err)
+	}
 
-  // Get default frontpage (not our personal one)
-  headlines, err := reddit.DefaultHeadlines()
-  if err != nil {
-    panic(err)
-  }
+	// Get our personal frontpage
+	headlines, err := session.DefaultHeadlines()
+	if err != nil {
+		panic(err)
+	}
 
-  // Upvote the first post
-  err = session.VoteHeadline(headlines[0], reddit.UpVote)
-  if err != nil {
-    panic(err)
-  }
+	// Get the default frontpage (not logged in)
+	headlines, err = session.AnonymousSession.DefaultHeadlines()
+	if err != nil {
+		panic(err)
+	}
+
+	// Upvote the first post
+	err = session.VoteHeadline(headlines[0], reddit.UpVote)
+	if err != nil {
+		panic(err)
+	}
 }
 ```
-
-## docs
-
-Checkout the [gopkgdoc page](http://go.pkgdoc.org/github.com/jzelinskie/reddit)
-
-## license
-
-Modified BSD License

@@ -5,11 +5,7 @@
 package reddit
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"net/url"
-	"strings"
 )
 
 type Comment struct {
@@ -31,10 +27,14 @@ type Comment struct {
 	AuthorFlairCSSClass *string //`json:"author_flair_css_class"`
 	NumReports          *int    //`json:"num_reports"`
 	Likes               *int    //`json:"likes"`
-	Replies             Comments
+	Replies             []*Comment
 }
 
-//Does the ugly work of setting the comment fields
+func (c Comment) String() string {
+	return fmt.Sprintf("%s (%d/%d): %s", c.Author, c.UpVotes, c.DownVotes, c.Body)
+}
+
+// Does the ugly work of setting the comment fields
 func makeComment(cmap map[string]interface{}) *Comment {
 	ret := new(Comment)
 	ret.Author = cmap["author"].(string)
@@ -59,42 +59,21 @@ func makeComment(cmap map[string]interface{}) *Comment {
 	//ret.NumReports = cmap["num_reports"].(*int)
 	//ret.Likes = cmap["likes"].(*int)
 
-	helper := new(Helper)
+	helper := new(helper)
 	helper.buildComments(cmap["replies"])
 	ret.Replies = helper.comments
 
 	return ret
 }
 
-type Comments []*Comment
-
 //Helper struct to keep our interesting stuff
-type Helper struct {
-	comments Comments
-}
-
-//Actual function to grab the comments
-func GetComments(h *Headline) (Comments, error) {
-	url := fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.Id)
-	body, err := getResponse(url, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	r := json.NewDecoder(body)
-	var interf interface{}
-	if err = r.Decode(&interf); err != nil {
-		return nil, err
-	}
-	helper := new(Helper)
-	helper.buildComments(interf)
-
-	return helper.comments, nil
+type helper struct {
+	comments []*Comment
 }
 
 //Recursive function to find the fields we want and build the Comments
 //Way too hackish for my likes
-func (h *Helper) buildComments(inf interface{}) {
+func (h *helper) buildComments(inf interface{}) {
 	switch tp := inf.(type) {
 	case []interface{}: //Maybe array for base comments
 		for _, k := range tp {
@@ -109,42 +88,4 @@ func (h *Helper) buildComments(inf interface{}) {
 			h.comments = append(h.comments, makeComment(tp))
 		}
 	}
-}
-
-func (s *Session) CommentHeadline(h *Headline, comment string) error {
-	loc := "http://www.reddit.com/api/comment"
-	vals := &url.Values{
-		"thing_id": {h.FullId},
-		"text":     {comment},
-		"uh":       {s.Modhash},
-	}
-	body, err := getResponse(loc, vals, s)
-	if err != nil {
-		return err
-	}
-
-	if !strings.Contains(body.String(), "data") {
-		return errors.New("Failed to post comment.")
-	}
-
-	return nil
-}
-
-func (s *Session) CommentReply(c Comment, comment string) error {
-	loc := "http://www.reddit.com/api/comment"
-	vals := &url.Values{
-		"parent": {c.FullId},
-		"text":   {comment},
-		"uh":     {s.Modhash},
-	}
-	body, err := getResponse(loc, vals, s)
-	if err != nil {
-		return err
-	}
-
-	if !strings.Contains(body.String(), "data") {
-		return errors.New("Failed to post comment.")
-	}
-
-	return nil
 }

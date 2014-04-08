@@ -5,7 +5,6 @@
 package reddit
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -24,24 +23,4 @@ type Redditor struct {
 // String returns the string representation of a reddit user.
 func (r *Redditor) String() string {
 	return fmt.Sprintf("%s (%d-%d)", r.Name, r.LinkKarma, r.CommentKarma)
-}
-
-// AboutRedditor returns a redditor for the given username.
-func AboutRedditor(username string) (*Redditor, error) {
-	url := fmt.Sprintf("http://www.reddit.com/user/%s/about.json", username)
-	body, err := getResponse(url, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	type Response struct {
-		Data Redditor
-	}
-	r := new(Response)
-	err = json.NewDecoder(body).Decode(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return &r.Data, nil
 }
