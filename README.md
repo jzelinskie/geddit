@@ -24,20 +24,20 @@ func main() {
 		panic(err)
 	}
 
-	// Get our personal frontpage
-	headlines, err := session.DefaultHeadlines()
+	// Get reddit's default frontpage
+	headlines, err := session.DefaultFrontpage()
 	if err != nil {
 		panic(err)
 	}
 
-	// Get the default frontpage (not logged in)
-	headlines, err = session.AnonymousSession.DefaultHeadlines()
+	// Get our own personal frontpage
+	headlines, err = session.Frontpage()
 	if err != nil {
 		panic(err)
 	}
 
 	// Upvote the first post
-	err = session.VoteHeadline(headlines[0], reddit.UpVote)
+	err = session.Vote(headlines[0].FullId, reddit.UpVote)
 	if err != nil {
 		panic(err)
 	}

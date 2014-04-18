@@ -9,7 +9,7 @@ import (
 	"fmt"
 )
 
-// Session represents an HTTP session with reddit.com without logged into
+// Session represents an HTTP session with reddit.com without logging into
 // an account.
 type AnonymousSession struct {
 	useragent string
@@ -21,9 +21,8 @@ func NewAnonymousSession(useragent string) *AnonymousSession {
 	}
 }
 
-// DefaultHeadlines returns a slice of headlines on the default reddit frontpage.
-// TODO Override this method for AccountSession
-func (s AnonymousSession) DefaultHeadlines() ([]*Headline, error) {
+// DefaultFrontpage returns the headlines on the default reddit frontpage.
+func (s AnonymousSession) DefaultFrontpage() ([]*Headline, error) {
 	req := request{
 		url:       "http://www.reddit.com/.json",
 		useragent: s.useragent,
@@ -54,7 +53,7 @@ func (s AnonymousSession) DefaultHeadlines() ([]*Headline, error) {
 	return headlines, nil
 }
 
-// SubredditHeadlines returns a slice of headlines on the given subreddit.
+// SubredditHeadlines returns the headlines on the given subreddit.
 func (s AnonymousSession) SubredditHeadlines(subreddit string) ([]*Headline, error) {
 	req := request{
 		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
@@ -199,7 +198,8 @@ func (s AnonymousSession) AboutSubreddit(subreddit string) (*Subreddit, error) {
 	return &r.Data, nil
 }
 
-func (s AnonymousSession) HeadlineComments(h *Headline) ([]*Comment, error) {
+// Comments returns the comments for a given Headline.
+func (s AnonymousSession) Comments(h *Headline) ([]*Comment, error) {
 	req := &request{
 		url:       fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.Id),
 		useragent: s.useragent,

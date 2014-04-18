@@ -107,7 +107,40 @@ func (s AccountSession) Clear() error {
 	return nil
 }
 
-// Me returns an up-to-date redditor object of the current user.
+// Frontpage returns the headlines on the logged-in user's personal frontpage.
+func (s AccountSession) Frontpage() ([]*Headline, error) {
+	req := request{
+		url:       "http://www.reddit.com/.json",
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Headline
+			}
+		}
+	}
+	r := &Response{}
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	headlines := make([]*Headline, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		headlines[i] = child.Data
+	}
+
+	return headlines, nil
+}
+
+// Me returns an up-to-date redditor object of the logged-in user.
 func (s AccountSession) Me() (*Redditor, error) {
 	req := &request{
 		url:       "http://www.reddit.com/api/me.json",
@@ -131,12 +164,12 @@ func (s AccountSession) Me() (*Redditor, error) {
 	return &r.Data, nil
 }
 
-// VoteHeadline either votes or rescinds a vote for the given headline.
-func (s AccountSession) VoteHeadline(h *Headline, v Vote) error {
+// Vote either votes or rescinds a vote for a Headline or Comment.
+func (s AccountSession) Vote(fullId string, v Vote) error {
 	req := &request{
 		url: "http://www.reddit.com/api/vote",
 		values: &url.Values{
-			"id":  {h.FullId},
+			"id":  {fullId},
 			"dir": {string(v)},
 			"uh":  {s.modhash},
 		},
@@ -153,17 +186,19 @@ func (s AccountSession) VoteHeadline(h *Headline, v Vote) error {
 	return nil
 }
 
-func (s AccountSession) ReplytoHeadline(h *Headline, comment string) error {
+// Reply posts a comment as a response to a Headline or Comment.
+func (s AccountSession) Reply(fullId, comment string) error {
 	req := &request{
 		url: "http://www.reddit.com/api/comment",
 		values: &url.Values{
-			"thing_id": {h.FullId},
+			"thing_id": {fullId},
 			"text":     {comment},
 			"uh":       {s.modhash},
 		},
 		cookie:    s.cookie,
 		useragent: s.useragent,
 	}
+
 	body, err := req.getResponse()
 	if err != nil {
 		return err
@@ -176,24 +211,25 @@ func (s AccountSession) ReplytoHeadline(h *Headline, comment string) error {
 	return nil
 }
 
-func (s AccountSession) ReplytoComment(c *Comment, comment string) error {
+// Delete deletes a Headline or Comment.
+func (s AccountSession) Delete(fullId string) error {
 	req := &request{
-		url: "http://www.reddit.com/api/comment",
+		url: "http://www.reddit.com/api/del",
 		values: &url.Values{
-			"parent": {c.FullId},
-			"text":   {comment},
-			"uh":     {s.modhash},
+			"id": {fullId},
+			"uh": {s.modhash},
 		},
 		cookie:    s.cookie,
 		useragent: s.useragent,
 	}
+
 	body, err := req.getResponse()
 	if err != nil {
 		return err
 	}
 
 	if !strings.Contains(body.String(), "data") {
-		return errors.New("Failed to post comment.")
+		return errors.New("Failed to delete item.")
 	}
 
 	return nil
