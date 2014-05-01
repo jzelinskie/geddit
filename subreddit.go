@@ -8,14 +8,15 @@ import (
 	"fmt"
 )
 
+// Subreddit represents a subreddit from reddit.com.
 type Subreddit struct {
 	Name        string  `json:"display_name"`
 	Title       string  `json:"title"`
 	Desc        string  `json:"description"`
 	PublicDesc  string  `json:"public_description"`
 	URL         string  `json:"url"`
-	FullId      string  `json:"name"`
-	Id          string  `json:"id"`
+	FullID      string  `json:"name"`
+	ID          string  `json:"id"`
 	HeaderImg   string  `json:"header_img"`
 	DateCreated float32 `json:"created_utc"`
 	NumSubs     int     `json:"subscribers"`

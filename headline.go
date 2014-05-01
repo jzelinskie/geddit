@@ -17,9 +17,9 @@ type Headline struct {
 	URL          string  `json:"url"`
 	Domain       string  `json:"domain"`
 	Subreddit    string  `json:"subreddit"`
-	SubredditId  string  `json:"subreddit_id"`
-	FullId       string  `json:"name"`
-	Id           string  `json:"id"`
+	SubredditID  string  `json:"subreddit_id"`
+	FullID       string  `json:"name"`
+	ID           string  `json:"id"`
 	Permalink    string  `json:"permalink"`
 	Selftext     string  `json:"selftext"`
 	ThumbnailURL string  `json:"thumbnail"`
@@ -34,6 +34,10 @@ type Headline struct {
 	IsSaved      bool    `json:"saved"`
 	BannedBy     *string `json:"banned_by"`
 }
+
+func (h Headline) voteID() string   { return h.FullID }
+func (h Headline) deleteID() string { return h.FullID }
+func (h Headline) replyID() string  { return h.FullID }
 
 // FullPermalink returns the full URL of a headline.
 func (h *Headline) FullPermalink() string {

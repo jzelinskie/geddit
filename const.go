@@ -4,13 +4,18 @@
 
 package reddit
 
-// Types of votes for headlines
+// Vote represents the three possible states of a vote on reddit.
 type Vote string
 
 const (
-	UpVote     Vote = "1"
-	DownVote        = "-1"
-	RemoveVote      = "0"
+	// UpVote represents a positive vote.
+	UpVote Vote = "1"
+
+	// DownVote represents a negative vote.
+	DownVote = "-1"
+
+	// RemoveVote represents no vote.
+	RemoveVote = "0"
 )
 
 // Sort headlines by popularity

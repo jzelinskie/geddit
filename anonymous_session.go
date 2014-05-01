@@ -9,12 +9,13 @@ import (
 	"fmt"
 )
 
-// Session represents an HTTP session with reddit.com without logging into
-// an account.
+// AnonymousSession represents an HTTP session with reddit.com
+// without logging into an account.
 type AnonymousSession struct {
 	useragent string
 }
 
+// NewAnonymousSession creates a new unauthenticated session to reddit.com.
 func NewAnonymousSession(useragent string) *AnonymousSession {
 	return &AnonymousSession{
 		useragent: useragent,
@@ -92,7 +93,7 @@ func (s AnonymousSession) SortedHeadlines(subreddit string, popularity Popularit
 	if age != DefaultAge {
 		switch popularity {
 		case NewHeadlines, RisingHeadlines, HotHeadlines:
-			return nil, fmt.Errorf("Cannot sort %s by %s", popularity, age)
+			return nil, fmt.Errorf("cannot sort %s by %s", popularity, age)
 		}
 	}
 
@@ -201,7 +202,7 @@ func (s AnonymousSession) AboutSubreddit(subreddit string) (*Subreddit, error) {
 // Comments returns the comments for a given Headline.
 func (s AnonymousSession) Comments(h *Headline) ([]*Comment, error) {
 	req := &request{
-		url:       fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.Id),
+		url:       fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.ID),
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()

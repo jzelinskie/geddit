@@ -14,6 +14,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/jzelinskie/reddit"
 )
 
@@ -37,7 +38,7 @@ func main() {
 	}
 
 	// Upvote the first post
-	err = session.Vote(headlines[0].FullId, reddit.UpVote)
+	err = session.Vote(headlines[0], reddit.UpVote)
 	if err != nil {
 		panic(err)
 	}

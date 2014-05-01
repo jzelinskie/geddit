@@ -14,8 +14,8 @@ import (
 	"strings"
 )
 
-// Session represents an HTTP session with reddit.com -- all authenticated API
-// calls are methods bound to this type.
+// AccountSession represents an HTTP session with reddit.com --
+// all authenticated API calls are methods bound to this type.
 type AccountSession struct {
 	username  string
 	password  string
@@ -60,7 +60,7 @@ func NewAccountSession(username, password, useragent string) (*AccountSession, e
 
 	// Get the modhash from the JSON.
 	type Response struct {
-		Json struct {
+		JSON struct {
 			Errors [][]string
 			Data   struct {
 				Modhash string
@@ -74,14 +74,14 @@ func NewAccountSession(username, password, useragent string) (*AccountSession, e
 		return nil, err
 	}
 
-	if len(r.Json.Errors) != 0 {
+	if len(r.JSON.Errors) != 0 {
 		var msg []string
-		for _, k := range r.Json.Errors {
+		for _, k := range r.JSON.Errors {
 			msg = append(msg, k[1])
 		}
 		return nil, errors.New(strings.Join(msg, ", "))
 	}
-	session.modhash = r.Json.Data.Modhash
+	session.modhash = r.JSON.Data.Modhash
 
 	return session, nil
 }
@@ -102,7 +102,7 @@ func (s AccountSession) Clear() error {
 	}
 
 	if !strings.Contains(body.String(), "all other sessions have been logged out") {
-		return errors.New("Failed to clear session.")
+		return errors.New("failed to clear session")
 	}
 	return nil
 }
@@ -165,12 +165,12 @@ func (s AccountSession) Me() (*Redditor, error) {
 }
 
 // Vote either votes or rescinds a vote for a Headline or Comment.
-func (s AccountSession) Vote(fullId string, v Vote) error {
+func (s AccountSession) Vote(v voter, vote Vote) error {
 	req := &request{
 		url: "http://www.reddit.com/api/vote",
 		values: &url.Values{
-			"id":  {fullId},
-			"dir": {string(v)},
+			"id":  {v.voteID()},
+			"dir": {string(vote)},
 			"uh":  {s.modhash},
 		},
 		cookie:    s.cookie,
@@ -181,17 +181,17 @@ func (s AccountSession) Vote(fullId string, v Vote) error {
 		return err
 	}
 	if body.String() != "{}" {
-		return errors.New("Failed to vote on headline.")
+		return errors.New("failed to vote on headline")
 	}
 	return nil
 }
 
 // Reply posts a comment as a response to a Headline or Comment.
-func (s AccountSession) Reply(fullId, comment string) error {
+func (s AccountSession) Reply(r replier, comment string) error {
 	req := &request{
 		url: "http://www.reddit.com/api/comment",
 		values: &url.Values{
-			"thing_id": {fullId},
+			"thing_id": {r.replyID()},
 			"text":     {comment},
 			"uh":       {s.modhash},
 		},
@@ -205,18 +205,18 @@ func (s AccountSession) Reply(fullId, comment string) error {
 	}
 
 	if !strings.Contains(body.String(), "data") {
-		return errors.New("Failed to post comment.")
+		return errors.New("failed to post comment")
 	}
 
 	return nil
 }
 
 // Delete deletes a Headline or Comment.
-func (s AccountSession) Delete(fullId string) error {
+func (s AccountSession) Delete(d deleter) error {
 	req := &request{
 		url: "http://www.reddit.com/api/del",
 		values: &url.Values{
-			"id": {fullId},
+			"id": {d.deleteID()},
 			"uh": {s.modhash},
 		},
 		cookie:    s.cookie,
@@ -229,7 +229,7 @@ func (s AccountSession) Delete(fullId string) error {
 	}
 
 	if !strings.Contains(body.String(), "data") {
-		return errors.New("Failed to delete item.")
+		return errors.New("failed to delete item")
 	}
 
 	return nil

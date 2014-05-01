@@ -8,15 +8,16 @@ import (
 	"fmt"
 )
 
+// Comment represents a reddit comment.
 type Comment struct {
 	Author              string  //`json:"author"`
 	Body                string  //`json:"body"`
 	BodyHTML            string  //`json:"body_html"`
 	Subreddit           string  //`json:"subreddit"`
-	LinkId              string  //`json:"link_id"`
-	ParentId            string  //`json:"parent_id"`
-	SubredditId         string  //`json:"subreddit_id"`
-	FullId              string  //`json:"name"`
+	LinkID              string  //`json:"link_id"`
+	ParentID            string  //`json:"parent_id"`
+	SubredditID         string  //`json:"subreddit_id"`
+	FullID              string  //`json:"name"`
 	UpVotes             float64 //`json:"ups"`
 	DownVotes           float64 //`json:"downs"`
 	Created             float64 //`json:"created_utc"`
@@ -30,6 +31,10 @@ type Comment struct {
 	Replies             []*Comment
 }
 
+func (c Comment) voteID() string   { return c.FullID }
+func (c Comment) deleteID() string { return c.FullID }
+func (c Comment) replyID() string  { return c.FullID }
+
 func (c Comment) String() string {
 	return fmt.Sprintf("%s (%d/%d): %s", c.Author, c.UpVotes, c.DownVotes, c.Body)
 }
@@ -41,10 +46,10 @@ func makeComment(cmap map[string]interface{}) *Comment {
 	ret.Body = cmap["body"].(string)
 	ret.BodyHTML = cmap["body_html"].(string)
 	ret.Subreddit = cmap["subreddit"].(string)
-	ret.LinkId = cmap["link_id"].(string)
-	ret.ParentId = cmap["parent_id"].(string)
-	ret.SubredditId = cmap["subreddit_id"].(string)
-	ret.FullId = cmap["name"].(string)
+	ret.LinkID = cmap["link_id"].(string)
+	ret.ParentID = cmap["parent_id"].(string)
+	ret.SubredditID = cmap["subreddit_id"].(string)
+	ret.FullID = cmap["name"].(string)
 	ret.UpVotes = cmap["ups"].(float64)
 	ret.DownVotes = cmap["downs"].(float64)
 	ret.Created = cmap["created_utc"].(float64)
