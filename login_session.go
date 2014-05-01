@@ -14,25 +14,25 @@ import (
 	"strings"
 )
 
-// AccountSession represents an HTTP session with reddit.com --
+// LoginSession represents an HTTP session with reddit.com --
 // all authenticated API calls are methods bound to this type.
-type AccountSession struct {
+type LoginSession struct {
 	username  string
 	password  string
 	useragent string
 	cookie    *http.Cookie
 	modhash   string `json:"modhash"`
-	AnonymousSession
+	Session
 }
 
-// NewAccountSession creates a new session for those who want to log into a
+// NewLoginSession creates a new session for those who want to log into a
 // reddit account.
-func NewAccountSession(username, password, useragent string) (*AccountSession, error) {
-	session := &AccountSession{
-		username:         username,
-		password:         password,
-		useragent:        useragent,
-		AnonymousSession: AnonymousSession{useragent},
+func NewLoginSession(username, password, useragent string) (*LoginSession, error) {
+	session := &LoginSession{
+		username:  username,
+		password:  password,
+		useragent: useragent,
+		Session:   Session{useragent},
 	}
 
 	loginURL := fmt.Sprintf("http://www.reddit.com/api/login/%s", username)
@@ -87,7 +87,7 @@ func NewAccountSession(username, password, useragent string) (*AccountSession, e
 }
 
 // Clear clears all session cookies and updates the current session with a new one.
-func (s AccountSession) Clear() error {
+func (s LoginSession) Clear() error {
 	req := &request{
 		url: "http://www.reddit.com/api/clear_sessions",
 		values: &url.Values{
@@ -108,7 +108,7 @@ func (s AccountSession) Clear() error {
 }
 
 // Frontpage returns the submissions on the logged-in user's personal frontpage.
-func (s AccountSession) Frontpage() ([]*Submission, error) {
+func (s LoginSession) Frontpage() ([]*Submission, error) {
 	req := request{
 		url:       "http://www.reddit.com/.json",
 		cookie:    s.cookie,
@@ -141,7 +141,7 @@ func (s AccountSession) Frontpage() ([]*Submission, error) {
 }
 
 // Me returns an up-to-date redditor object of the logged-in user.
-func (s AccountSession) Me() (*Redditor, error) {
+func (s LoginSession) Me() (*Redditor, error) {
 	req := &request{
 		url:       "http://www.reddit.com/api/me.json",
 		cookie:    s.cookie,
@@ -165,7 +165,7 @@ func (s AccountSession) Me() (*Redditor, error) {
 }
 
 // Vote either votes or rescinds a vote for a Submission or Comment.
-func (s AccountSession) Vote(v Voter, vote vote) error {
+func (s LoginSession) Vote(v Voter, vote vote) error {
 	req := &request{
 		url: "http://www.reddit.com/api/vote",
 		values: &url.Values{
@@ -187,7 +187,7 @@ func (s AccountSession) Vote(v Voter, vote vote) error {
 }
 
 // Reply posts a comment as a response to a Submission or Comment.
-func (s AccountSession) Reply(r Replier, comment string) error {
+func (s LoginSession) Reply(r Replier, comment string) error {
 	req := &request{
 		url: "http://www.reddit.com/api/comment",
 		values: &url.Values{
@@ -212,7 +212,7 @@ func (s AccountSession) Reply(r Replier, comment string) error {
 }
 
 // Delete deletes a Submission or Comment.
-func (s AccountSession) Delete(d Deleter) error {
+func (s LoginSession) Delete(d Deleter) error {
 	req := &request{
 		url: "http://www.reddit.com/api/del",
 		values: &url.Values{

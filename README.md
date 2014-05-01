@@ -28,7 +28,7 @@ func main() {
 	)
 
 	// Get reddit's default frontpage
-	headlines, _ := session.DefaultFrontpage()
+	submissions, _ := session.DefaultFrontpage()
 
 	// Get our own personal frontpage
 	submissions, _ = session.Frontpage()

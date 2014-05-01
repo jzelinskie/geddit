@@ -9,21 +9,21 @@ import (
 	"fmt"
 )
 
-// AnonymousSession represents an HTTP session with reddit.com
+// Session represents an HTTP session with reddit.com
 // without logging into an account.
-type AnonymousSession struct {
+type Session struct {
 	useragent string
 }
 
-// NewAnonymousSession creates a new unauthenticated session to reddit.com.
-func NewAnonymousSession(useragent string) *AnonymousSession {
-	return &AnonymousSession{
+// NewSession creates a new unauthenticated session to reddit.com.
+func NewSession(useragent string) *Session {
+	return &Session{
 		useragent: useragent,
 	}
 }
 
 // DefaultFrontpage returns the submissions on the default reddit frontpage.
-func (s AnonymousSession) DefaultFrontpage() ([]*Submission, error) {
+func (s Session) DefaultFrontpage() ([]*Submission, error) {
 	req := request{
 		url:       "http://www.reddit.com/.json",
 		useragent: s.useragent,
@@ -55,7 +55,7 @@ func (s AnonymousSession) DefaultFrontpage() ([]*Submission, error) {
 }
 
 // SubredditSubmissions returns the submissions on the given subreddit.
-func (s AnonymousSession) SubredditSubmissions(subreddit string) ([]*Submission, error) {
+func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
 	req := request{
 		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
 		useragent: s.useragent,
@@ -89,7 +89,7 @@ func (s AnonymousSession) SubredditSubmissions(subreddit string) ([]*Submission,
 
 // SortedSubmissions will return submissions from a subreddit (or homepage if "") by popularity and age
 // TODO Review this
-func (s AnonymousSession) SortedSubmissions(subreddit string, popularity popularitySort, age ageSort) ([]*Submission, error) {
+func (s Session) SortedSubmissions(subreddit string, popularity popularitySort, age ageSort) ([]*Submission, error) {
 	if age != DefaultAge {
 		switch popularity {
 		case NewSubmissions, RisingSubmissions, HotSubmissions:
@@ -153,7 +153,7 @@ func (s AnonymousSession) SortedSubmissions(subreddit string, popularity popular
 }
 
 // AboutRedditor returns a Redditor for the given username.
-func (s AnonymousSession) AboutRedditor(username string) (*Redditor, error) {
+func (s Session) AboutRedditor(username string) (*Redditor, error) {
 	req := &request{
 		url:       fmt.Sprintf("http://www.reddit.com/user/%s/about.json", username),
 		useragent: s.useragent,
@@ -176,7 +176,7 @@ func (s AnonymousSession) AboutRedditor(username string) (*Redditor, error) {
 }
 
 // AboutSubreddit returns a subreddit for the given subreddit name.
-func (s AnonymousSession) AboutSubreddit(subreddit string) (*Subreddit, error) {
+func (s Session) AboutSubreddit(subreddit string) (*Subreddit, error) {
 	req := &request{
 		url:       fmt.Sprintf("http://www.reddit.com/r/%s/about.json", subreddit),
 		useragent: s.useragent,
@@ -200,7 +200,7 @@ func (s AnonymousSession) AboutSubreddit(subreddit string) (*Subreddit, error) {
 }
 
 // Comments returns the comments for a given Submission.
-func (s AnonymousSession) Comments(h *Submission) ([]*Comment, error) {
+func (s Session) Comments(h *Submission) ([]*Comment, error) {
 	req := &request{
 		url:       fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.ID),
 		useragent: s.useragent,
