@@ -31,9 +31,9 @@ func main() {
 	headlines, _ := session.DefaultFrontpage()
 
 	// Get our own personal frontpage
-	headlines, _ = session.Frontpage()
+	submissions, _ = session.Frontpage()
 
 	// Upvote the first post
-	session.Vote(headlines[0], reddit.UpVote)
+	session.Vote(submissions[0], reddit.UpVote)
 }
 ```

@@ -22,8 +22,8 @@ func NewAnonymousSession(useragent string) *AnonymousSession {
 	}
 }
 
-// DefaultFrontpage returns the headlines on the default reddit frontpage.
-func (s AnonymousSession) DefaultFrontpage() ([]*Headline, error) {
+// DefaultFrontpage returns the submissions on the default reddit frontpage.
+func (s AnonymousSession) DefaultFrontpage() ([]*Submission, error) {
 	req := request{
 		url:       "http://www.reddit.com/.json",
 		useragent: s.useragent,
@@ -36,7 +36,7 @@ func (s AnonymousSession) DefaultFrontpage() ([]*Headline, error) {
 	type Response struct {
 		Data struct {
 			Children []struct {
-				Data *Headline
+				Data *Submission
 			}
 		}
 	}
@@ -46,16 +46,16 @@ func (s AnonymousSession) DefaultFrontpage() ([]*Headline, error) {
 		return nil, err
 	}
 
-	headlines := make([]*Headline, len(r.Data.Children))
+	submissions := make([]*Submission, len(r.Data.Children))
 	for i, child := range r.Data.Children {
-		headlines[i] = child.Data
+		submissions[i] = child.Data
 	}
 
-	return headlines, nil
+	return submissions, nil
 }
 
-// SubredditHeadlines returns the headlines on the given subreddit.
-func (s AnonymousSession) SubredditHeadlines(subreddit string) ([]*Headline, error) {
+// SubredditSubmissions returns the submissions on the given subreddit.
+func (s AnonymousSession) SubredditSubmissions(subreddit string) ([]*Submission, error) {
 	req := request{
 		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
 		useragent: s.useragent,
@@ -68,7 +68,7 @@ func (s AnonymousSession) SubredditHeadlines(subreddit string) ([]*Headline, err
 	type Response struct {
 		Data struct {
 			Children []struct {
-				Data *Headline
+				Data *Submission
 			}
 		}
 	}
@@ -79,20 +79,20 @@ func (s AnonymousSession) SubredditHeadlines(subreddit string) ([]*Headline, err
 		return nil, err
 	}
 
-	headlines := make([]*Headline, len(r.Data.Children))
+	submissions := make([]*Submission, len(r.Data.Children))
 	for i, child := range r.Data.Children {
-		headlines[i] = child.Data
+		submissions[i] = child.Data
 	}
 
-	return headlines, nil
+	return submissions, nil
 }
 
-// SortedHeadlines will return headlines from a subreddit (or homepage if "") by popularity and age
+// SortedSubmissions will return submissions from a subreddit (or homepage if "") by popularity and age
 // TODO Review this
-func (s AnonymousSession) SortedHeadlines(subreddit string, popularity popularitySort, age ageSort) ([]*Headline, error) {
+func (s AnonymousSession) SortedSubmissions(subreddit string, popularity popularitySort, age ageSort) ([]*Submission, error) {
 	if age != DefaultAge {
 		switch popularity {
-		case NewHeadlines, RisingHeadlines, HotHeadlines:
+		case NewSubmissions, RisingSubmissions, HotSubmissions:
 			return nil, fmt.Errorf("cannot sort %s by %s", popularity, age)
 		}
 	}
@@ -104,7 +104,7 @@ func (s AnonymousSession) SortedHeadlines(subreddit string, popularity popularit
 	}
 
 	if popularity != DefaultPopularity {
-		if popularity == NewHeadlines || popularity == RisingHeadlines {
+		if popularity == NewSubmissions || popularity == RisingSubmissions {
 			url = fmt.Sprintf("%snew.json?sort=%s", url, popularity)
 		} else {
 			url = fmt.Sprintf("%s%s.json?sort=%s", url, popularity, popularity)
@@ -133,7 +133,7 @@ func (s AnonymousSession) SortedHeadlines(subreddit string, popularity popularit
 	type Response struct {
 		Data struct {
 			Children []struct {
-				Data *Headline
+				Data *Submission
 			}
 		}
 	}
@@ -144,12 +144,12 @@ func (s AnonymousSession) SortedHeadlines(subreddit string, popularity popularit
 		return nil, err
 	}
 
-	headlines := make([]*Headline, len(r.Data.Children))
+	submissions := make([]*Submission, len(r.Data.Children))
 	for i, child := range r.Data.Children {
-		headlines[i] = child.Data
+		submissions[i] = child.Data
 	}
 
-	return headlines, nil
+	return submissions, nil
 }
 
 // AboutRedditor returns a Redditor for the given username.
@@ -199,8 +199,8 @@ func (s AnonymousSession) AboutSubreddit(subreddit string) (*Subreddit, error) {
 	return &r.Data, nil
 }
 
-// Comments returns the comments for a given Headline.
-func (s AnonymousSession) Comments(h *Headline) ([]*Comment, error) {
+// Comments returns the comments for a given Submission.
+func (s AnonymousSession) Comments(h *Submission) ([]*Comment, error) {
 	req := &request{
 		url:       fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.ID),
 		useragent: s.useragent,

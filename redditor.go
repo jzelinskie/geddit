@@ -9,7 +9,7 @@ import (
 )
 
 type Redditor struct {
-	Id           string  `json:"id"`
+	ID           string  `json:"id"`
 	Name         string  `json:"name"`
 	LinkKarma    int     `json:"link_karma"`
 	CommentKarma int     `json:"comment_karma"`

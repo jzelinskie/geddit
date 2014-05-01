@@ -8,10 +8,10 @@ import (
 	"fmt"
 )
 
-// Headline represents an individual post from the perspective
+// Submission represents an individual post from the perspective
 // of a subreddit. Remember to check for nil pointers before
 // using any pointer fields.
-type Headline struct {
+type Submission struct {
 	Author       string  `json:"author"`
 	Title        string  `json:"title"`
 	URL          string  `json:"url"`
@@ -35,17 +35,17 @@ type Headline struct {
 	BannedBy     *string `json:"banned_by"`
 }
 
-func (h Headline) voteID() string   { return h.FullID }
-func (h Headline) deleteID() string { return h.FullID }
-func (h Headline) replyID() string  { return h.FullID }
+func (h Submission) voteID() string   { return h.FullID }
+func (h Submission) deleteID() string { return h.FullID }
+func (h Submission) replyID() string  { return h.FullID }
 
-// FullPermalink returns the full URL of a headline.
-func (h *Headline) FullPermalink() string {
+// FullPermalink returns the full URL of a submission.
+func (h *Submission) FullPermalink() string {
 	return "http://reddit.com" + h.Permalink
 }
 
-// String returns the string representation of a headline.
-func (h *Headline) String() string {
+// String returns the string representation of a submission.
+func (h *Submission) String() string {
 	plural := ""
 	if h.NumComments != 1 {
 		plural = "s"

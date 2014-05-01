@@ -13,19 +13,19 @@ const (
 	RemoveVote      = "0"
 )
 
-// popularitySort represents the possible ways to sort headlines by popularity.
+// popularitySort represents the possible ways to sort submissions by popularity.
 type popularitySort string
 
 const (
-	DefaultPopularity      popularitySort = ""
-	HotHeadlines                          = "hot"
-	NewHeadlines                          = "new"
-	RisingHeadlines                       = "rising"
-	TopHeadlines                          = "top"
-	ControversialHeadlines                = "controversial"
+	DefaultPopularity        popularitySort = ""
+	HotSubmissions                          = "hot"
+	NewSubmissions                          = "new"
+	RisingSubmissions                       = "rising"
+	TopSubmissions                          = "top"
+	ControversialSubmissions                = "controversial"
 )
 
-// ageSort represents the possible ways to sort headlines by age.
+// ageSort represents the possible ways to sort submissions by age.
 type ageSort string
 
 const (

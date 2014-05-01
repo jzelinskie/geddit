@@ -107,8 +107,8 @@ func (s AccountSession) Clear() error {
 	return nil
 }
 
-// Frontpage returns the headlines on the logged-in user's personal frontpage.
-func (s AccountSession) Frontpage() ([]*Headline, error) {
+// Frontpage returns the submissions on the logged-in user's personal frontpage.
+func (s AccountSession) Frontpage() ([]*Submission, error) {
 	req := request{
 		url:       "http://www.reddit.com/.json",
 		cookie:    s.cookie,
@@ -122,7 +122,7 @@ func (s AccountSession) Frontpage() ([]*Headline, error) {
 	type Response struct {
 		Data struct {
 			Children []struct {
-				Data *Headline
+				Data *Submission
 			}
 		}
 	}
@@ -132,12 +132,12 @@ func (s AccountSession) Frontpage() ([]*Headline, error) {
 		return nil, err
 	}
 
-	headlines := make([]*Headline, len(r.Data.Children))
+	submissions := make([]*Submission, len(r.Data.Children))
 	for i, child := range r.Data.Children {
-		headlines[i] = child.Data
+		submissions[i] = child.Data
 	}
 
-	return headlines, nil
+	return submissions, nil
 }
 
 // Me returns an up-to-date redditor object of the logged-in user.
@@ -164,7 +164,7 @@ func (s AccountSession) Me() (*Redditor, error) {
 	return &r.Data, nil
 }
 
-// Vote either votes or rescinds a vote for a Headline or Comment.
+// Vote either votes or rescinds a vote for a Submission or Comment.
 func (s AccountSession) Vote(v Voter, vote vote) error {
 	req := &request{
 		url: "http://www.reddit.com/api/vote",
@@ -181,12 +181,12 @@ func (s AccountSession) Vote(v Voter, vote vote) error {
 		return err
 	}
 	if body.String() != "{}" {
-		return errors.New("failed to vote on headline")
+		return errors.New("failed to vote")
 	}
 	return nil
 }
 
-// Reply posts a comment as a response to a Headline or Comment.
+// Reply posts a comment as a response to a Submission or Comment.
 func (s AccountSession) Reply(r Replier, comment string) error {
 	req := &request{
 		url: "http://www.reddit.com/api/comment",
@@ -211,7 +211,7 @@ func (s AccountSession) Reply(r Replier, comment string) error {
 	return nil
 }
 
-// Delete deletes a Headline or Comment.
+// Delete deletes a Submission or Comment.
 func (s AccountSession) Delete(d Deleter) error {
 	req := &request{
 		url: "http://www.reddit.com/api/del",
