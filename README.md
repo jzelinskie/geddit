@@ -21,7 +21,7 @@ import (
 // Please don't handle errors this way.
 func main() {
 	// Login to reddit
-	session, _ := reddit.NewAccountSession(
+	session, _ := reddit.NewLoginSession(
 		"novelty_account",
 		"password",
 		"golang reddit example",
