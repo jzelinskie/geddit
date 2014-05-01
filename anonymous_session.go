@@ -89,7 +89,7 @@ func (s AnonymousSession) SubredditHeadlines(subreddit string) ([]*Headline, err
 
 // SortedHeadlines will return headlines from a subreddit (or homepage if "") by popularity and age
 // TODO Review this
-func (s AnonymousSession) SortedHeadlines(subreddit string, popularity PopularitySort, age AgeSort) ([]*Headline, error) {
+func (s AnonymousSession) SortedHeadlines(subreddit string, popularity popularitySort, age ageSort) ([]*Headline, error) {
 	if age != DefaultAge {
 		switch popularity {
 		case NewHeadlines, RisingHeadlines, HotHeadlines:

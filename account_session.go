@@ -165,7 +165,7 @@ func (s AccountSession) Me() (*Redditor, error) {
 }
 
 // Vote either votes or rescinds a vote for a Headline or Comment.
-func (s AccountSession) Vote(v voter, vote Vote) error {
+func (s AccountSession) Vote(v Voter, vote vote) error {
 	req := &request{
 		url: "http://www.reddit.com/api/vote",
 		values: &url.Values{
@@ -187,7 +187,7 @@ func (s AccountSession) Vote(v voter, vote Vote) error {
 }
 
 // Reply posts a comment as a response to a Headline or Comment.
-func (s AccountSession) Reply(r replier, comment string) error {
+func (s AccountSession) Reply(r Replier, comment string) error {
 	req := &request{
 		url: "http://www.reddit.com/api/comment",
 		values: &url.Values{
@@ -212,7 +212,7 @@ func (s AccountSession) Reply(r replier, comment string) error {
 }
 
 // Delete deletes a Headline or Comment.
-func (s AccountSession) Delete(d deleter) error {
+func (s AccountSession) Delete(d Deleter) error {
 	req := &request{
 		url: "http://www.reddit.com/api/del",
 		values: &url.Values{
