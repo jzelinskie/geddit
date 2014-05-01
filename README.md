@@ -18,29 +18,22 @@ import (
 	"github.com/jzelinskie/reddit"
 )
 
+// Please don't handle errors this way.
 func main() {
 	// Login to reddit
-	session, err := reddit.NewAccountSession("novelty_account", "password", "golang reddit example")
-	if err != nil {
-		panic(err)
-	}
+	session, _ := reddit.NewAccountSession(
+		"novelty_account",
+		"password",
+		"golang reddit example",
+	)
 
 	// Get reddit's default frontpage
-	headlines, err := session.DefaultFrontpage()
-	if err != nil {
-		panic(err)
-	}
+	headlines, _ := session.DefaultFrontpage()
 
 	// Get our own personal frontpage
-	headlines, err = session.Frontpage()
-	if err != nil {
-		panic(err)
-	}
+	headlines, _ = session.Frontpage()
 
 	// Upvote the first post
-	err = session.Vote(headlines[0], reddit.UpVote)
-	if err != nil {
-		panic(err)
-	}
+	session.Vote(headlines[0], reddit.UpVote)
 }
 ```
