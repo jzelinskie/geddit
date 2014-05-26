@@ -39,30 +39,27 @@ func (c Comment) String() string {
 	return fmt.Sprintf("%s (%d/%d): %s", c.Author, c.UpVotes, c.DownVotes, c.Body)
 }
 
-// Does the ugly work of setting the comment fields
+// makeComment tries its best to fill as many fields as possible of a Comment.
 func makeComment(cmap map[string]interface{}) *Comment {
 	ret := new(Comment)
-	ret.Author = cmap["author"].(string)
-	ret.Body = cmap["body"].(string)
-	ret.BodyHTML = cmap["body_html"].(string)
-	ret.Subreddit = cmap["subreddit"].(string)
-	ret.LinkID = cmap["link_id"].(string)
-	ret.ParentID = cmap["parent_id"].(string)
-	ret.SubredditID = cmap["subreddit_id"].(string)
-	ret.FullID = cmap["name"].(string)
-	ret.UpVotes = cmap["ups"].(float64)
-	ret.DownVotes = cmap["downs"].(float64)
-	ret.Created = cmap["created_utc"].(float64)
-
-	//These fields commented out because they threw runtime errors in type assertion
-
-	//ret.Edited = cmap["edited"].(bool)
-	//ret.BannedBy = cmap["banned_by"].(*string)
-	//ret.ApprovedBy = cmap["approved_by"].(*string)
-	//ret.AuthorFlairTxt = cmap["author_flair_text"].(*string)
-	//ret.AuthorFlairCSSClass = cmap["author_flair_css_class"].(*string)
-	//ret.NumReports = cmap["num_reports"].(*int)
-	//ret.Likes = cmap["likes"].(*int)
+	ret.Author, _ = cmap["author"].(string)
+	ret.Body, _ = cmap["body"].(string)
+	ret.BodyHTML, _ = cmap["body_html"].(string)
+	ret.Subreddit, _ = cmap["subreddit"].(string)
+	ret.LinkID, _ = cmap["link_id"].(string)
+	ret.ParentID, _ = cmap["parent_id"].(string)
+	ret.SubredditID, _ = cmap["subreddit_id"].(string)
+	ret.FullID, _ = cmap["name"].(string)
+	ret.UpVotes, _ = cmap["ups"].(float64)
+	ret.DownVotes, _ = cmap["downs"].(float64)
+	ret.Created, _ = cmap["created_utc"].(float64)
+	ret.Edited, _ = cmap["edited"].(bool)
+	ret.BannedBy, _ = cmap["banned_by"].(*string)
+	ret.ApprovedBy, _ = cmap["approved_by"].(*string)
+	ret.AuthorFlairTxt, _ = cmap["author_flair_text"].(*string)
+	ret.AuthorFlairCSSClass, _ = cmap["author_flair_css_class"].(*string)
+	ret.NumReports, _ = cmap["num_reports"].(*int)
+	ret.Likes, _ = cmap["likes"].(*int)
 
 	helper := new(helper)
 	helper.buildComments(cmap["replies"])
