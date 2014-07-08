@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -162,6 +163,42 @@ func (s LoginSession) Me() (*Redditor, error) {
 	}
 
 	return &r.Data, nil
+}
+
+func (s LoginSession) Submit(sr Submitter, ns newSubmission) error {
+
+	var kind string
+
+	if ns.Self {
+		kind = "self"
+	} else {
+		kind = "link"
+	}
+
+	req := &request{
+		url: "http://www.reddit.com/api/submit",
+		values: &url.Values{
+			"title":       {ns.Title},
+			"url":         {ns.Content},
+			"text":        {ns.Content},
+			"sr":          {sr.submitID()},
+			"r":           {sr.submitID()},
+			"kind":        {kind},
+			"sendreplies": {strconv.FormatBool(ns.SendReplies)},
+			"resubmit":    {strconv.FormatBool(ns.Resubmit)},
+			"uh":          {s.modhash},
+		},
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return err
+	}
+	if strings.Contains(body.String(), "error") {
+		return errors.New("failed to submit")
+	}
+	return nil
 }
 
 // Vote either votes or rescinds a vote for a Submission or Comment.
