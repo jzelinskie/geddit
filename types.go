@@ -13,6 +13,15 @@ const (
 	RemoveVote      = "0"
 )
 
+// newSubmission contains the data needed to submit
+type newSubmission struct {
+	Title       string
+	Content     string
+	Self        bool
+	SendReplies bool
+	Resubmit    bool
+}
+
 // popularitySort represents the possible ways to sort submissions by popularity.
 type popularitySort string
 
@@ -35,6 +44,10 @@ const (
 	ThisYear           = "year"
 	AllTime            = "all"
 )
+
+type Submitter interface {
+	submitID() string
+}
 
 // Voter represents something that can be voted on reddit.com.
 type Voter interface {
