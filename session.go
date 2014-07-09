@@ -7,6 +7,8 @@ package reddit
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/png"
 )
 
 // Session represents an HTTP session with reddit.com
@@ -219,4 +221,26 @@ func (s Session) Comments(h *Submission) ([]*Comment, error) {
 	helper.buildComments(interf)
 
 	return helper.comments, nil
+}
+
+// CaptchaImage gets the png corresponding to the captcha iden and decodes it
+func (s Session) CaptchaImage(iden string) (image.Image, error) {
+	req := &request{
+		url:       fmt.Sprintf("http://www.reddit.com/captcha/%s", iden),
+		useragent: s.useragent,
+	}
+
+	p, err := req.getResponse()
+
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := png.Decode(p)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
 }
