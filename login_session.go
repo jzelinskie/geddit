@@ -165,7 +165,7 @@ func (s LoginSession) Me() (*Redditor, error) {
 	return &r.Data, nil
 }
 
-func (s LoginSession) Submit(sr Submitter, ns newSubmission) error {
+func (s LoginSession) Submit(ns *newSubmission) error {
 
 	var kind string
 
@@ -181,16 +181,19 @@ func (s LoginSession) Submit(sr Submitter, ns newSubmission) error {
 			"title":       {ns.Title},
 			"url":         {ns.Content},
 			"text":        {ns.Content},
-			"sr":          {sr.submitID()},
-			"r":           {sr.submitID()},
+			"sr":          {ns.Subreddit},
 			"kind":        {kind},
 			"sendreplies": {strconv.FormatBool(ns.SendReplies)},
 			"resubmit":    {strconv.FormatBool(ns.Resubmit)},
+			"extension":   {"json"},
+			"captcha":     {ns.Captcha.Response},
+			"iden":        {ns.Captcha.Iden},
 			"uh":          {s.modhash},
 		},
 		cookie:    s.cookie,
 		useragent: s.useragent,
 	}
+
 	body, err := req.getResponse()
 	if err != nil {
 		return err
@@ -270,4 +273,61 @@ func (s LoginSession) Delete(d Deleter) error {
 	}
 
 	return nil
+}
+
+// NeedsCaptcha returns true if captcha is required, false if it isn't
+func (s LoginSession) NeedsCaptcha() (bool, error) {
+	req := &request{
+		url:       "http://www.reddit.com/api/needs_captcha.json",
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+
+	body, err := req.getResponse()
+
+	if err != nil {
+		return false, err
+	}
+
+	need, err := strconv.ParseBool(body.String())
+
+	if err != nil {
+		return false, err
+	}
+
+	return need, nil
+}
+
+// NewCaptchaIden gets a new captcha iden from reddit
+func (s LoginSession) NewCaptchaIden() (string, error) {
+	req := &request{
+		url: "http://www.reddit.com/api/new_captcha",
+		values: &url.Values{
+			"api_type": {"json"},
+		},
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return "", err
+	}
+
+	// Get the CAPTCHA iden from the JSON.
+	type Response struct {
+		JSON struct {
+			Errors [][]string
+			Data   struct {
+				Iden string
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return "", err
+	}
+
+	return r.JSON.Data.Iden, nil
 }
