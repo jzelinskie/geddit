@@ -5,8 +5,8 @@ import "testing"
 func TestSubmit(t *testing.T) {
 
 	session, err := NewLoginSession(
-		"Algorhythmical",
-		"Parkfield.123",
+		"redditgolang",
+		"apitest11",
 		"tester",
 	)
 	if err != nil {
