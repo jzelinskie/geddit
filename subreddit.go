@@ -23,8 +23,6 @@ type Subreddit struct {
 	IsNSFW      bool    `json:"over18"`
 }
 
-func (s Subreddit) submitID() string { return s.Name }
-
 // String returns the string representation of a subreddit.
 func (s *Subreddit) String() string {
 	var subs string
