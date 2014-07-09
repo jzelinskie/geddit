@@ -13,6 +13,33 @@ const (
 	RemoveVote      = "0"
 )
 
+type Captcha struct {
+	Iden     string
+	Response string
+}
+
+// newSubmission contains the data needed to submit
+type newSubmission struct {
+	Subreddit   string
+	Title       string
+	Content     string
+	Self        bool
+	SendReplies bool
+	Resubmit    bool
+	Save        bool
+	Captcha     *Captcha
+}
+
+// NewLinkSubmission returns a newSubmission with parameters appropriate for a link submission
+func NewLinkSubmission(sr, title, link string, replies bool, c *Captcha) *newSubmission {
+	return &newSubmission{sr, title, link, false, replies, true, true, c}
+}
+
+// NewTextSubmission returns a newSubmission with parameters appropriate for a text submission
+func NewTextSubmission(sr, title, text string, replies bool, c *Captcha) *newSubmission {
+	return &newSubmission{sr, title, text, true, replies, true, true, c}
+}
+
 // popularitySort represents the possible ways to sort submissions by popularity.
 type popularitySort string
 
