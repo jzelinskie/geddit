@@ -331,3 +331,86 @@ func (s LoginSession) NewCaptchaIden() (string, error) {
 
 	return r.JSON.Data.Iden, nil
 }
+
+// Listing returns a listing for an user
+func (s LoginSession) Listing(username, listing string, sort popularitySort, after string) ([]*Submission, error) {
+	values := &url.Values{}
+	if sort != "" {
+		values.Set("sort", string(sort))
+	}
+	if after != "" {
+		values.Set("after", after)
+	}
+	url := fmt.Sprintf("http://www.reddit.com/user/%s/%s.json?%s", username, listing, values.Encode())
+	req := &request{
+		url:       url,
+		cookie:    s.cookie,
+		useragent: s.useragent,
+	}
+
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := &Response{}
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
+
+// Fetch the Overview listing for the logged-in user
+func (s LoginSession) MyOverview(sort popularitySort, after string) ([]*Submission, error) {
+	return s.Listing(s.username, "overview", sort, after)
+}
+
+// Fetch the Submitted listing for the logged-in user
+func (s LoginSession) MySubmitted(sort popularitySort, after string) ([]*Submission, error) {
+	return s.Listing(s.username, "submitted", sort, after)
+}
+
+// Fetch the Comments listing for the logged-in user
+func (s LoginSession) MyComments(sort popularitySort, after string) ([]*Submission, error) {
+	return s.Listing(s.username, "comments", sort, after)
+}
+
+// Fetch the Liked listing for the logged-in user
+func (s LoginSession) MyLiked(sort popularitySort, after string) ([]*Submission, error) {
+	return s.Listing(s.username, "liked", sort, after)
+}
+
+// Fetch the Disliked listing for the logged-in user
+func (s LoginSession) MyDisliked(sort popularitySort, after string) ([]*Submission, error) {
+	return s.Listing(s.username, "disliked", sort, after)
+}
+
+// Fetch the Hidden listing for the logged-in user
+func (s LoginSession) MyHidden(sort popularitySort, after string) ([]*Submission, error) {
+	return s.Listing(s.username, "hidden", sort, after)
+}
+
+// Fetch the Saved listing for the logged-in user
+func (s LoginSession) MySaved(sort popularitySort, after string) ([]*Submission, error) {
+	return s.Listing(s.username, "saved", sort, after)
+}
+
+// Fetch the Gilded listing for the logged-in user
+func (s LoginSession) MyGilded(sort popularitySort, after string) ([]*Submission, error) {
+	return s.Listing(s.username, "gilded", sort, after)
+}
