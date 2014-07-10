@@ -60,3 +60,19 @@ func TestSubmit(t *testing.T) {
 	}
 
 }
+
+func TestListings(t *testing.T) {
+	session, err := NewLoginSession(
+		"redditgolang",
+		"apitest11",
+		"tester",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = session.MySaved(NewSubmissions, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
