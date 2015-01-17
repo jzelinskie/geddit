@@ -6,6 +6,7 @@ package reddit
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -60,6 +61,54 @@ func (s Session) DefaultFrontpage() ([]*Submission, error) {
 func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
 	req := request{
 		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
+
+// Returns top submmissions from a subreddit
+// Second argument must have value of one of "hour", "day", "week", "month", "year", "all"
+func (s Session) TopSubmissions(subreddit string, time string) ([]*Submission, error) {
+	t := []string{"hour", "day", "week", "month", "year", "all"}
+	url := ""
+	timeValid := ""
+
+	//check if time is valid value
+	for _, k := range t {
+		if time == k {
+			timeValid = time
+			url = fmt.Sprintf("http://www.reddit.com/r/%s/top.json?t=%s", subreddit, timeValid)
+		}
+	}
+	if timeValid == "" {
+		return nil, errors.New("value must be one of (hour, day, week, month, year, all)")
+	}
+	req := request{
+		url:       url,
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
