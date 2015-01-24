@@ -4,30 +4,31 @@
 
 package reddit
 
-import (
-	"fmt"
-)
+import "fmt"
+
+type Comments struct {
+}
 
 // Comment represents a reddit comment.
 type Comment struct {
-	Author              string  //`json:"author"`
-	Body                string  //`json:"body"`
-	BodyHTML            string  //`json:"body_html"`
-	Subreddit           string  //`json:"subreddit"`
-	LinkID              string  //`json:"link_id"`
-	ParentID            string  //`json:"parent_id"`
-	SubredditID         string  //`json:"subreddit_id"`
-	FullID              string  //`json:"name"`
-	UpVotes             float64 //`json:"ups"`
-	DownVotes           float64 //`json:"downs"`
-	Created             float64 //`json:"created_utc"`
-	Edited              bool    //`json:"edited"`
-	BannedBy            *string //`json:"banned_by"`
-	ApprovedBy          *string //`json:"approved_by"`
-	AuthorFlairTxt      *string //`json:"author_flair_text"`
-	AuthorFlairCSSClass *string //`json:"author_flair_css_class"`
-	NumReports          *int    //`json:"num_reports"`
-	Likes               *int    //`json:"likes"`
+	Author              string  `json:"author"`
+	Body                string  `json:"body"`
+	BodyHTML            string  `json:"body_html"`
+	Subreddit           string  `json:"subreddit"`
+	LinkID              string  `json:"link_id"`
+	ParentID            string  `json:"parent_id"`
+	SubredditID         string  `json:"subreddit_id"`
+	FullID              string  `json:"name"`
+	UpVotes             float64 `json:"ups"`
+	DownVotes           float64 `json:"downs"`
+	Created             float64 `json:"created_utc"`
+	Edited              bool    `json:"edited"`
+	BannedBy            *string `json:"banned_by"`
+	ApprovedBy          *string `json:"approved_by"`
+	AuthorFlairTxt      *string `json:"author_flair_text"`
+	AuthorFlairCSSClass *string `json:"author_flair_css_class"`
+	NumReports          *int    `json:"num_reports"`
+	Likes               *int    `json:"likes"`
 	Replies             []*Comment
 }
 
