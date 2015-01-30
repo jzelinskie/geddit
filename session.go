@@ -6,10 +6,27 @@ package reddit
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
 )
+
+type PostAge string
+
+const (
+	Hour  PostAge = "hour"
+	Day   PostAge = "day"
+	Week  PostAge = "week"
+	Month PostAge = "month"
+	Year  PostAge = "year"
+	All   PostAge = "all"
+)
+
+// String() will return string from PostAge type
+func (p PostAge) String() string {
+	return string(p)
+}
 
 // Session represents an HTTP session with reddit.com
 // without logging into an account.
@@ -123,6 +140,185 @@ func (s Session) Comments(h *Submission) ([]*Comment, error) {
 	helper.buildComments(interf)
 
 	return helper.comments, nil
+}
+
+// SubredditSubmissions returns the submissions on the given subreddit.
+func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
+	req := request{
+		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
+
+// Returns top submmissions from a subreddit
+// Second argument must have value of one of "hour", "day", "week", "month", "year", "all"
+func (s Session) TopSubmissions(subreddit string, t PostAge) ([]*Submission, error) {
+	times := []string{"hour", "day", "week", "month", "year", "all"}
+	url := ""
+	timeValid := ""
+
+	//check if time is valid value
+	for _, k := range times {
+		if t.String() == k {
+			timeValid = t.String()
+			url = fmt.Sprintf("http://www.reddit.com/r/%s/top.json?t=%s", subreddit, timeValid)
+		}
+	}
+	if timeValid == "" {
+		return nil, errors.New("value must be one of (hour, day, week, month, year, all)")
+	}
+	req := request{
+		url:       url,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
+
+// Returns a slice of submissions from the hot section of the subreddit
+func (s Session) HotSubmissions(subreddit string) ([]*Submission, error) {
+	req := request{
+		url:       fmt.Sprintf("http://www.reddit.com/r/%s/hot.json", subreddit),
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
+
+// SortedSubmissions will return submissions from a subreddit (or homepage if "") by popularity and age
+// TODO Review this
+func (s Session) SortedSubmissions(subreddit string, popularity popularitySort, age ageSort) ([]*Submission, error) {
+	if age != DefaultAge {
+		switch popularity {
+		case NewSubmissions, RisingSubmissions, HotSubmissions:
+			return nil, fmt.Errorf("cannot sort %s by %s", popularity, age)
+		}
+	}
+
+	url := "http://reddit.com/"
+
+	if subreddit != "" {
+		url = fmt.Sprintf("%sr/%s/", url, subreddit)
+	}
+
+	if popularity != DefaultPopularity {
+		if popularity == NewSubmissions || popularity == RisingSubmissions {
+			url = fmt.Sprintf("%snew.json?sort=%s", url, popularity)
+		} else {
+			url = fmt.Sprintf("%s%s.json?sort=%s", url, popularity, popularity)
+		}
+	} else {
+		url = fmt.Sprintf("%s.json", url)
+	}
+
+	if age != DefaultAge {
+		if popularity != DefaultPopularity {
+			url = fmt.Sprintf("%s&t=%s", url, age)
+		} else {
+			url = fmt.Sprintf("%s?t=%s", url, age)
+		}
+	}
+
+	req := &request{
+		url:       url,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
 }
 
 // CaptchaImage gets the png corresponding to the captcha iden and decodes it
