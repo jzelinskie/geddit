@@ -1,7 +1,7 @@
-# reddit
-a convenient abstraction for the [reddit.com](http://reddit.com) API
+# geddit
+a convenient abstraction for the [reddit.com](http://reddit.com) API in Go
 
-Checkout the [godoc page](http://godoc.org/github.com/jzelinskie/reddit)
+Checkout the [godoc page](http://godoc.org/github.com/jzelinskie/geddit)
 
 ## warning
 
@@ -15,13 +15,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/jzelinskie/reddit"
+	"github.com/jzelinskie/geddit"
 )
 
 // Please don't handle errors this way.
 func main() {
 	// Login to reddit
-	session, _ := reddit.NewLoginSession(
+	session, _ := geddit.NewLoginSession(
 		"novelty_account",
 		"password",
 		"golang reddit example",
@@ -34,6 +34,6 @@ func main() {
 	submissions, _ = session.Frontpage()
 
 	// Upvote the first post
-	session.Vote(submissions[0], reddit.UpVote)
+	session.Vote(submissions[0], geddit.UpVote)
 }
 ```

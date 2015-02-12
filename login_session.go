@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package reddit implements an abstraction for the reddit.com API.
-package reddit
+package geddit
 
 import (
 	"encoding/json"
