@@ -6,10 +6,27 @@ package geddit
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
 )
+
+type PostAge string
+
+const (
+	Hour  PostAge = "hour"
+	Day   PostAge = "day"
+	Week  PostAge = "week"
+	Month PostAge = "month"
+	Year  PostAge = "year"
+	All   PostAge = "all"
+)
+
+// String() will return string from PostAge type
+func (p PostAge) String() string {
+	return string(p)
+}
 
 // Session represents an HTTP session with reddit.com
 // without logging into an account.
@@ -56,10 +73,160 @@ func (s Session) DefaultFrontpage() ([]*Submission, error) {
 	return submissions, nil
 }
 
+// AboutRedditor returns a Redditor for the given username.
+func (s Session) AboutRedditor(username string) (*Redditor, error) {
+	req := &request{
+		url:       fmt.Sprintf("http://www.reddit.com/user/%s/about.json", username),
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data Redditor
+	}
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r.Data, nil
+}
+
+// AboutSubreddit returns a subreddit for the given subreddit name.
+func (s Session) AboutSubreddit(subreddit string) (*Subreddit, error) {
+	req := &request{
+		url:       fmt.Sprintf("http://www.reddit.com/r/%s/about.json", subreddit),
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data Subreddit
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r.Data, nil
+}
+
+// Comments returns the comments for a given Submission.
+func (s Session) Comments(h *Submission) ([]*Comment, error) {
+	req := &request{
+		url:       fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.ID),
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	r := json.NewDecoder(body)
+	var interf interface{}
+	if err = r.Decode(&interf); err != nil {
+		return nil, err
+	}
+	helper := new(helper)
+	helper.buildComments(interf)
+
+	return helper.comments, nil
+}
+
 // SubredditSubmissions returns the submissions on the given subreddit.
 func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
 	req := request{
 		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
+
+// Returns top submmissions from a subreddit
+// Second argument must have value of one of "hour", "day", "week", "month", "year", "all"
+func (s Session) TopSubmissions(subreddit string, t PostAge) ([]*Submission, error) {
+	times := []string{"hour", "day", "week", "month", "year", "all"}
+	url := ""
+	timeValid := ""
+
+	//check if time is valid value
+	for _, k := range times {
+		if t.String() == k {
+			timeValid = t.String()
+			url = fmt.Sprintf("http://www.reddit.com/r/%s/top.json?t=%s", subreddit, timeValid)
+		}
+	}
+	if timeValid == "" {
+		return nil, errors.New("value must be one of (hour, day, week, month, year, all)")
+	}
+	req := request{
+		url:       url,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
+
+// Returns a slice of submissions from the hot section of the subreddit
+func (s Session) HotSubmissions(subreddit string) ([]*Submission, error) {
+	req := request{
+		url:       fmt.Sprintf("http://www.reddit.com/r/%s/hot.json", subreddit),
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
@@ -152,75 +319,6 @@ func (s Session) SortedSubmissions(subreddit string, popularity popularitySort, 
 	}
 
 	return submissions, nil
-}
-
-// AboutRedditor returns a Redditor for the given username.
-func (s Session) AboutRedditor(username string) (*Redditor, error) {
-	req := &request{
-		url:       fmt.Sprintf("http://www.reddit.com/user/%s/about.json", username),
-		useragent: s.useragent,
-	}
-	body, err := req.getResponse()
-	if err != nil {
-		return nil, err
-	}
-
-	type Response struct {
-		Data Redditor
-	}
-	r := new(Response)
-	err = json.NewDecoder(body).Decode(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return &r.Data, nil
-}
-
-// AboutSubreddit returns a subreddit for the given subreddit name.
-func (s Session) AboutSubreddit(subreddit string) (*Subreddit, error) {
-	req := &request{
-		url:       fmt.Sprintf("http://www.reddit.com/r/%s/about.json", subreddit),
-		useragent: s.useragent,
-	}
-	body, err := req.getResponse()
-	if err != nil {
-		return nil, err
-	}
-
-	type Response struct {
-		Data Subreddit
-	}
-
-	r := new(Response)
-	err = json.NewDecoder(body).Decode(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return &r.Data, nil
-}
-
-// Comments returns the comments for a given Submission.
-func (s Session) Comments(h *Submission) ([]*Comment, error) {
-	req := &request{
-		url:       fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.ID),
-		useragent: s.useragent,
-	}
-	body, err := req.getResponse()
-	if err != nil {
-		return nil, err
-	}
-
-	r := json.NewDecoder(body)
-	var interf interface{}
-	if err = r.Decode(&interf); err != nil {
-		return nil, err
-	}
-	helper := new(helper)
-	helper.buildComments(interf)
-
-	return helper.comments, nil
 }
 
 // CaptchaImage gets the png corresponding to the captcha iden and decodes it

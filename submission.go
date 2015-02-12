@@ -4,9 +4,7 @@
 
 package geddit
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // Submission represents an individual post from the perspective
 // of a subreddit. Remember to check for nil pointers before
