@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"net/url"
 )
 
 // Session represents an HTTP session with reddit.com
@@ -53,6 +54,45 @@ func (s Session) DefaultFrontpage() ([]*Submission, error) {
 		submissions[i] = child.Data
 	}
 
+	return submissions, nil
+}
+
+func (s Session) GetSubmissions(subreddit string, sort string, config map[string]string) ([]*Submission, error) {
+	baseUrl, err := url.Parse(fmt.Sprintf("http://www.reddit.com/r/%s/%s.json", subreddit, sort))
+	params := url.Values{}
+	for key, value := range config{
+		params.Add(key, value)
+	}
+	baseUrl.RawQuery = params.Encode()
+	
+	req := request{
+		url: baseUrl.String(),
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+	
+	type Response struct{
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+	
+	r := &Response{}
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+	
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+	
 	return submissions, nil
 }
 
