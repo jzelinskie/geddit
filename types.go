@@ -64,6 +64,16 @@ const (
 	AllTime            = "all"
 )
 
+type ListingOptions struct {
+	Time    string `url:"t,omitempty"`
+	Limit   int    `url:"limit,omitempty"`
+	After   string `url:"after,omitempty"`
+	Before  string `url:"before,omitempty"`
+	Count   int    `url:"count,omitempty"`
+	Show    string `url:"show,omitempty"`
+	Article string `url:"article,omitempty"`
+}
+
 // Voter represents something that can be voted on reddit.com.
 type Voter interface {
 	voteID() string

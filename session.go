@@ -7,6 +7,7 @@ package geddit
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/go-querystring/query"
 	"image"
 	"image/png"
 	"net/url"
@@ -57,13 +58,12 @@ func (s Session) DefaultFrontpage() ([]*Submission, error) {
 	return submissions, nil
 }
 
-func (s Session) SortedSubmissions(subreddit string, sort popularitySort, params map[string]string) ([]*Submission, error) {
-	baseUrl, err := url.Parse(fmt.Sprintf("http://www.reddit.com/r/%s/%s.json", subreddit, sort))
-	urlParams := url.Values{}
-	for key, value := range params {
-		urlParams.Add(key, value)
+func (s Session) SortedSubmissions(subreddit string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
 	}
-	baseUrl.RawQuery = urlParams.Encode()
+	baseUrl, err := url.Parse(fmt.Sprintf("http://www.reddit.com/r/%s/%s.json?%s", subreddit, sort, v.Encode()))
 
 	req := request{
 		url:       baseUrl.String(),
