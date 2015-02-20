@@ -57,7 +57,7 @@ func (s Session) DefaultFrontpage() ([]*Submission, error) {
 	return submissions, nil
 }
 
-func (s Session) SortedSubmissions(subreddit string, sort string, config map[string]string) ([]*Submission, error) {
+func (s Session) SortedSubmissions(subreddit string, sort popularitySort, config map[string]string) ([]*Submission, error) {
 	baseUrl, err := url.Parse(fmt.Sprintf("http://www.reddit.com/r/%s/%s.json", subreddit, sort))
 	params := url.Values{}
 	for key, value := range config{

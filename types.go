@@ -58,6 +58,7 @@ type ageSort string
 const (
 	DefaultAge ageSort = ""
 	ThisHour           = "hour"
+	ThisDay			   = "day"
 	ThisMonth          = "month"
 	ThisYear           = "year"
 	AllTime            = "all"
