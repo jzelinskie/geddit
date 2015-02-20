@@ -108,8 +108,6 @@ func (s LoginSession) Clear() error {
 	return nil
 }
 
-
-
 // Frontpage returns the submissions on the logged-in user's personal frontpage.
 func (s LoginSession) Frontpage() ([]*Submission, error) {
 	req := request{
