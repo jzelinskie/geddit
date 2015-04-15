@@ -7,10 +7,11 @@ package geddit
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/go-querystring/query"
 	"image"
 	"image/png"
 	"net/url"
+
+	"github.com/google/go-querystring/query"
 )
 
 // Session represents an HTTP session with reddit.com
@@ -58,6 +59,8 @@ func (s Session) DefaultFrontpage() ([]*Submission, error) {
 	return submissions, nil
 }
 
+// SortedSubmissions return the submission for the request subreddit based on the
+// provided sorting and listing options
 func (s Session) SortedSubmissions(subreddit string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
 	v, err := query.Values(params)
 	if err != nil {
