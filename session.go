@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"net/url"
+
+	"github.com/google/go-querystring/query"
 )
 
 // Session represents an HTTP session with reddit.com
@@ -56,10 +59,17 @@ func (s Session) DefaultFrontpage() ([]*Submission, error) {
 	return submissions, nil
 }
 
-// SubredditSubmissions returns the submissions on the given subreddit.
-func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
+// SortedSubmissions return the submission for the request subreddit based on the
+// provided sorting and listing options
+func (s Session) SortedSubmissions(subreddit string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+	baseUrl, err := url.Parse(fmt.Sprintf("http://www.reddit.com/r/%s/%s.json?%s", subreddit, sort, v.Encode()))
+
 	req := request{
-		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
+		url:       baseUrl.String(),
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
@@ -75,7 +85,7 @@ func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
 		}
 	}
 
-	r := new(Response)
+	r := &Response{}
 	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
@@ -89,42 +99,10 @@ func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
 	return submissions, nil
 }
 
-// SortedSubmissions will return submissions from a subreddit (or homepage if "") by popularity and age
-// TODO Review this
-func (s Session) SortedSubmissions(subreddit string, popularity popularitySort, age ageSort) ([]*Submission, error) {
-	if age != DefaultAge {
-		switch popularity {
-		case NewSubmissions, RisingSubmissions, HotSubmissions:
-			return nil, fmt.Errorf("cannot sort %s by %s", popularity, age)
-		}
-	}
-
-	url := "http://reddit.com/"
-
-	if subreddit != "" {
-		url = fmt.Sprintf("%sr/%s/", url, subreddit)
-	}
-
-	if popularity != DefaultPopularity {
-		if popularity == NewSubmissions || popularity == RisingSubmissions {
-			url = fmt.Sprintf("%snew.json?sort=%s", url, popularity)
-		} else {
-			url = fmt.Sprintf("%s%s.json?sort=%s", url, popularity, popularity)
-		}
-	} else {
-		url = fmt.Sprintf("%s.json", url)
-	}
-
-	if age != DefaultAge {
-		if popularity != DefaultPopularity {
-			url = fmt.Sprintf("%s&t=%s", url, age)
-		} else {
-			url = fmt.Sprintf("%s?t=%s", url, age)
-		}
-	}
-
-	req := &request{
-		url:       url,
+// SubredditSubmissions returns the submissions on the given subreddit.
+func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
+	req := request{
+		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
