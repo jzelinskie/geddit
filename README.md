@@ -24,7 +24,7 @@ func main() {
 	session, _ := geddit.NewLoginSession(
 		"novelty_account",
 		"password",
-		"golang reddit example",
+		"gedditAgent v1",
 	)
 
 	// Get reddit's default frontpage
@@ -32,6 +32,11 @@ func main() {
 
 	// Get our own personal frontpage
 	submissions, _ = session.Frontpage()
+
+	// Print title and author of each submission
+	for _, s := range submissions {
+		fmt.Printf("Title: %s\nAuthor: %s\n\n", s.Title, s.Author)
+	}
 
 	// Upvote the first post
 	session.Vote(submissions[0], geddit.UpVote)
