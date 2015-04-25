@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"net/url"
 
 	"github.com/google/go-querystring/query"
 )
@@ -28,81 +27,28 @@ func NewSession(useragent string) *Session {
 }
 
 // DefaultFrontpage returns the submissions on the default reddit frontpage.
-func (s Session) DefaultFrontpage() ([]*Submission, error) {
-	req := request{
-		url:       "http://www.reddit.com/.json",
-		useragent: s.useragent,
-	}
-	body, err := req.getResponse()
-	if err != nil {
-		return nil, err
-	}
-
-	type Response struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-	r := &Response{}
-	err = json.NewDecoder(body).Decode(r)
-	if err != nil {
-		return nil, err
-	}
-
-	submissions := make([]*Submission, len(r.Data.Children))
-	for i, child := range r.Data.Children {
-		submissions[i] = child.Data
-	}
-
-	return submissions, nil
+func (s Session) DefaultFrontpage(sort popularitySort, params ListingOptions) ([]*Submission, error) {
+	return s.SubredditSubmissions("", sort, params)
 }
 
-// SortedSubmissions return the submission for the request subreddit based on the
-// provided sorting and listing options
-func (s Session) SortedSubmissions(subreddit string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+// SubredditSubmissions returns the submissions on the given subreddit.
+func (s Session) SubredditSubmissions(subreddit string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
 	v, err := query.Values(params)
 	if err != nil {
 		return nil, err
 	}
-	baseUrl, err := url.Parse(fmt.Sprintf("http://www.reddit.com/r/%s/%s.json?%s", subreddit, sort, v.Encode()))
+
+	baseUrl := "http://www.reddit.com"
+
+	// If subbreddit given, add to URL
+	if subreddit != "" {
+		baseUrl += "/r/" + subreddit
+	}
+
+	redditUrl := fmt.Sprintf(baseUrl + "/%s.json?%s", sort, v.Encode())
 
 	req := request{
-		url:       baseUrl.String(),
-		useragent: s.useragent,
-	}
-	body, err := req.getResponse()
-	if err != nil {
-		return nil, err
-	}
-
-	type Response struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-
-	r := &Response{}
-	err = json.NewDecoder(body).Decode(r)
-	if err != nil {
-		return nil, err
-	}
-
-	submissions := make([]*Submission, len(r.Data.Children))
-	for i, child := range r.Data.Children {
-		submissions[i] = child.Data
-	}
-
-	return submissions, nil
-}
-
-// SubredditSubmissions returns the submissions on the given subreddit.
-func (s Session) SubredditSubmissions(subreddit string) ([]*Submission, error) {
-	req := request{
-		url:       fmt.Sprintf("http://www.reddit.com/r/%s.json", subreddit),
+		url:       redditUrl,
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
