@@ -13,6 +13,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/google/go-querystring/query"
 )
 
 // LoginSession represents an HTTP session with reddit.com --
@@ -109,9 +111,16 @@ func (s LoginSession) Clear() error {
 }
 
 // Frontpage returns the submissions on the logged-in user's personal frontpage.
-func (s LoginSession) Frontpage() ([]*Submission, error) {
+func (s LoginSession) Frontpage(sort popularitySort, params ListingOptions) ([]*Submission, error) {
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+
+	redditUrl := fmt.Sprintf("http://www.reddit.com/%s/.json?%s", sort, v.Encode())
+
 	req := request{
-		url:       "http://www.reddit.com/.json",
+		url:       redditUrl,
 		cookie:    s.cookie,
 		useragent: s.useragent,
 	}
