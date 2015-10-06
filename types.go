@@ -18,8 +18,8 @@ type Captcha struct {
 	Response string
 }
 
-// newSubmission contains the data needed to submit
-type newSubmission struct {
+// NewSubmission contains the data needed to submit
+type NewSubmission struct {
 	Subreddit   string
 	Title       string
 	Content     string
@@ -30,14 +30,14 @@ type newSubmission struct {
 	Captcha     *Captcha
 }
 
-// NewLinkSubmission returns a newSubmission with parameters appropriate for a link submission
-func NewLinkSubmission(sr, title, link string, replies bool, c *Captcha) *newSubmission {
-	return &newSubmission{sr, title, link, false, replies, true, true, c}
+// NewLinkSubmission returns a NewSubmission with parameters appropriate for a link submission
+func NewLinkSubmission(sr, title, link string, replies bool, c *Captcha) *NewSubmission {
+	return &NewSubmission{sr, title, link, false, replies, true, true, c}
 }
 
-// NewTextSubmission returns a newSubmission with parameters appropriate for a text submission
-func NewTextSubmission(sr, title, text string, replies bool, c *Captcha) *newSubmission {
-	return &newSubmission{sr, title, text, true, replies, true, true, c}
+// NewTextSubmission returns a NewSubmission with parameters appropriate for a text submission
+func NewTextSubmission(sr, title, text string, replies bool, c *Captcha) *NewSubmission {
+	return &NewSubmission{sr, title, text, true, replies, true, true, c}
 }
 
 // popularitySort represents the possible ways to sort submissions by popularity.
