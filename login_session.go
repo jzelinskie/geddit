@@ -174,7 +174,7 @@ func (s LoginSession) Me() (*Redditor, error) {
 	return &r.Data, nil
 }
 
-func (s LoginSession) Submit(ns *newSubmission) error {
+func (s LoginSession) Submit(ns *NewSubmission) error {
 
 	var kind string
 
