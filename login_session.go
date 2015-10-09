@@ -38,7 +38,7 @@ func NewLoginSession(username, password, useragent string) (*LoginSession, error
 		Session:   Session{useragent},
 	}
 
-	loginURL := fmt.Sprintf("http://www.reddit.com/api/login/%s", username)
+	loginURL := fmt.Sprintf("https://www.reddit.com/api/login/%s", username)
 	postValues := url.Values{
 		"user":     {username},
 		"passwd":   {password},
@@ -92,7 +92,7 @@ func NewLoginSession(username, password, useragent string) (*LoginSession, error
 // Clear clears all session cookies and updates the current session with a new one.
 func (s LoginSession) Clear() error {
 	req := &request{
-		url: "http://www.reddit.com/api/clear_sessions",
+		url: "https://www.reddit.com/api/clear_sessions",
 		values: &url.Values{
 			"curpass": {s.password},
 			"uh":      {s.modhash},
@@ -117,7 +117,7 @@ func (s LoginSession) Frontpage(sort popularitySort, params ListingOptions) ([]*
 		return nil, err
 	}
 
-	redditUrl := fmt.Sprintf("http://www.reddit.com/%s/.json?%s", sort, v.Encode())
+	redditUrl := fmt.Sprintf("https://www.reddit.com/%s/.json?%s", sort, v.Encode())
 
 	req := request{
 		url:       redditUrl,
@@ -153,7 +153,7 @@ func (s LoginSession) Frontpage(sort popularitySort, params ListingOptions) ([]*
 // Me returns an up-to-date redditor object of the logged-in user.
 func (s LoginSession) Me() (*Redditor, error) {
 	req := &request{
-		url:       "http://www.reddit.com/api/me.json",
+		url:       "https://www.reddit.com/api/me.json",
 		cookie:    s.cookie,
 		useragent: s.useragent,
 	}
@@ -185,7 +185,7 @@ func (s LoginSession) Submit(ns *NewSubmission) error {
 	}
 
 	req := &request{
-		url: "http://www.reddit.com/api/submit",
+		url: "https://www.reddit.com/api/submit",
 		values: &url.Values{
 			"title":       {ns.Title},
 			"url":         {ns.Content},
@@ -216,7 +216,7 @@ func (s LoginSession) Submit(ns *NewSubmission) error {
 // Vote either votes or rescinds a vote for a Submission or Comment.
 func (s LoginSession) Vote(v Voter, vote vote) error {
 	req := &request{
-		url: "http://www.reddit.com/api/vote",
+		url: "https://www.reddit.com/api/vote",
 		values: &url.Values{
 			"id":  {v.voteID()},
 			"dir": {string(vote)},
@@ -238,7 +238,7 @@ func (s LoginSession) Vote(v Voter, vote vote) error {
 // Reply posts a comment as a response to a Submission or Comment.
 func (s LoginSession) Reply(r Replier, comment string) error {
 	req := &request{
-		url: "http://www.reddit.com/api/comment",
+		url: "https://www.reddit.com/api/comment",
 		values: &url.Values{
 			"thing_id": {r.replyID()},
 			"text":     {comment},
@@ -263,7 +263,7 @@ func (s LoginSession) Reply(r Replier, comment string) error {
 // Delete deletes a Submission or Comment.
 func (s LoginSession) Delete(d Deleter) error {
 	req := &request{
-		url: "http://www.reddit.com/api/del",
+		url: "https://www.reddit.com/api/del",
 		values: &url.Values{
 			"id": {d.deleteID()},
 			"uh": {s.modhash},
@@ -287,7 +287,7 @@ func (s LoginSession) Delete(d Deleter) error {
 // NeedsCaptcha returns true if captcha is required, false if it isn't
 func (s LoginSession) NeedsCaptcha() (bool, error) {
 	req := &request{
-		url:       "http://www.reddit.com/api/needs_captcha.json",
+		url:       "https://www.reddit.com/api/needs_captcha.json",
 		cookie:    s.cookie,
 		useragent: s.useragent,
 	}
@@ -310,7 +310,7 @@ func (s LoginSession) NeedsCaptcha() (bool, error) {
 // NewCaptchaIden gets a new captcha iden from reddit
 func (s LoginSession) NewCaptchaIden() (string, error) {
 	req := &request{
-		url: "http://www.reddit.com/api/new_captcha",
+		url: "https://www.reddit.com/api/new_captcha",
 		values: &url.Values{
 			"api_type": {"json"},
 		},
@@ -350,7 +350,7 @@ func (s LoginSession) Listing(username, listing string, sort popularitySort, aft
 	if after != "" {
 		values.Set("after", after)
 	}
-	url := fmt.Sprintf("http://www.reddit.com/user/%s/%s.json?%s", username, listing, values.Encode())
+	url := fmt.Sprintf("https://www.reddit.com/user/%s/%s.json?%s", username, listing, values.Encode())
 	req := &request{
 		url:       url,
 		cookie:    s.cookie,

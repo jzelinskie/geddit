@@ -38,14 +38,14 @@ func (s Session) SubredditSubmissions(subreddit string, sort popularitySort, par
 		return nil, err
 	}
 
-	baseUrl := "http://www.reddit.com"
+	baseUrl := "https://www.reddit.com"
 
 	// If subbreddit given, add to URL
 	if subreddit != "" {
 		baseUrl += "/r/" + subreddit
 	}
 
-	redditUrl := fmt.Sprintf(baseUrl + "/%s.json?%s", sort, v.Encode())
+	redditUrl := fmt.Sprintf(baseUrl+"/%s.json?%s", sort, v.Encode())
 
 	req := request{
 		url:       redditUrl,
@@ -81,7 +81,7 @@ func (s Session) SubredditSubmissions(subreddit string, sort popularitySort, par
 // AboutRedditor returns a Redditor for the given username.
 func (s Session) AboutRedditor(username string) (*Redditor, error) {
 	req := &request{
-		url:       fmt.Sprintf("http://www.reddit.com/user/%s/about.json", username),
+		url:       fmt.Sprintf("https://www.reddit.com/user/%s/about.json", username),
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
@@ -104,7 +104,7 @@ func (s Session) AboutRedditor(username string) (*Redditor, error) {
 // AboutSubreddit returns a subreddit for the given subreddit name.
 func (s Session) AboutSubreddit(subreddit string) (*Subreddit, error) {
 	req := &request{
-		url:       fmt.Sprintf("http://www.reddit.com/r/%s/about.json", subreddit),
+		url:       fmt.Sprintf("https://www.reddit.com/r/%s/about.json", subreddit),
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
@@ -128,7 +128,7 @@ func (s Session) AboutSubreddit(subreddit string) (*Subreddit, error) {
 // Comments returns the comments for a given Submission.
 func (s Session) Comments(h *Submission) ([]*Comment, error) {
 	req := &request{
-		url:       fmt.Sprintf("http://www.reddit.com/comments/%s/.json", h.ID),
+		url:       fmt.Sprintf("https://www.reddit.com/comments/%s/.json", h.ID),
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
@@ -150,7 +150,7 @@ func (s Session) Comments(h *Submission) ([]*Comment, error) {
 // CaptchaImage gets the png corresponding to the captcha iden and decodes it
 func (s Session) CaptchaImage(iden string) (image.Image, error) {
 	req := &request{
-		url:       fmt.Sprintf("http://www.reddit.com/captcha/%s", iden),
+		url:       fmt.Sprintf("https://www.reddit.com/captcha/%s", iden),
 		useragent: s.useragent,
 	}
 
