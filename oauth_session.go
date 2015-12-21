@@ -14,7 +14,9 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/beefsack/go-rate"
 	"github.com/google/go-querystring/query"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -29,11 +31,12 @@ type OAuthSession struct {
 	OAuthConfig  *oauth2.Config
 	UserAgent    string
 	ctx          context.Context
+	throttle     *rate.RateLimiter
 }
 
 // NewLoginSession creates a new session for those who want to log into a
 // reddit account via OAuth.
-func NewOAuthSession(clientID, clientSecret, useragent string, limit bool) (*OAuthSession, error) {
+func NewOAuthSession(clientID, clientSecret, useragent string) (*OAuthSession, error) {
 	s := &OAuthSession{}
 
 	if useragent != "" {
@@ -53,8 +56,20 @@ func NewOAuthSession(clientID, clientSecret, useragent string, limit bool) (*OAu
 			TokenURL: "https://www.reddit.com/api/v1/access_token",
 		},
 	}
+	s.ctx = context.Background()
+	return s, nil
+}
 
-	ctx := context.Background()
+// Throttle sets the interval of each HTTP request.
+// Disable by setting interval to 0. Disabled by default.
+// Throttling is applied to invidual OAuthSession types.
+func (o *OAuthSession) Throttle(interval time.Duration) {
+	if interval == 0 {
+		o.throttle = nil
+		return
+	}
+	o.throttle = rate.New(1, interval)
+}
 
 // LoginAuth creates the required HTTP client with a new token.
 func (o *OAuthSession) LoginAuth(username, password string) error {
@@ -67,8 +82,20 @@ func (o *OAuthSession) LoginAuth(username, password string) error {
 	return nil
 }
 
-	s.Client = s.OAuthConfig.Client(ctx, t)
-	return s, nil
+// AuthCodeURL creates and returns an auth URL which contains an auth code.
+func (o *OAuthSession) AuthCodeURL(state string, scopes []string) string {
+	o.OAuthConfig.Scopes = scopes
+	return o.OAuthConfig.AuthCodeURL(state, oauth2.AccessTypeOnline)
+}
+
+// CodeAuth creates and sets a token using an authentication code returned from AuthCodeURL.
+func (o *OAuthSession) CodeAuth(code string) error {
+	t, err := o.OAuthConfig.Exchange(o.ctx, code)
+	if err != nil {
+		return err
+	}
+	o.Client = o.OAuthConfig.Client(context.Background(), t) //o.ctx, t)
+	return nil
 }
 
 func (o *OAuthSession) getBody(link string, d interface{}) error {
@@ -81,8 +108,14 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 	req.Header.Set("User-Agent", o.UserAgent)
 
 	if o.Client == nil {
-		return errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuthentication() to make one.")
+		return errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuth() to make one.")
 	}
+
+	// Throttle request
+	if o.throttle != nil {
+		o.throttle.Wait()
+	}
+
 	resp, err := o.Client.Do(req)
 	if err != nil {
 		return err
@@ -167,6 +200,47 @@ func (o *OAuthSession) MyTrophies() ([]*Trophy, error) {
 	return myTrophies, nil
 }
 
+// Listing returns a slice of Submission pointers.
+// See https://www.reddit.com/dev/api#listings for documentation.
+func (o *OAuthSession) Listing(username, listing string, sort popularitySort, after string) ([]*Submission, error) {
+	values := &url.Values{}
+	if sort != "" {
+		values.Set("sort", string(sort))
+	}
+	if after != "" {
+		values.Set("after", after)
+	}
+
+	type resp struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+	r := &resp{}
+	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/%s?%s", username, listing, values.Encode())
+	err := o.getBody(url, r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
+
+func (o *OAuthSession) MyUpvoted(sort popularitySort, after string) ([]*Submission, error) {
+	me, err := o.Me()
+	if err != nil {
+		return nil, err
+	}
+	return o.Listing(me.Name, "upvoted", sort, after)
+}
+
 // AboutRedditor returns a Redditor for the given username using OAuth.
 func (o *OAuthSession) AboutRedditor(user string) (*Redditor, error) {
 	type redditor struct {
@@ -246,8 +320,14 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	req.PostForm = form
 
 	if o.Client == nil {
-		return errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuthentication() to make one.")
+		return errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuth() to make one.")
 	}
+
+	// Throttle request
+	if o.throttle != nil {
+		o.throttle.Wait()
+	}
+
 	resp, err := o.Client.Do(req)
 	if err != nil {
 		return err
@@ -268,7 +348,7 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	return nil
 }
 
-// SubmitLink accepts a NewSubmission type and submits a new link using OAuth.
+// Submit accepts a NewSubmission type and submits a new link using OAuth.
 // Returns a Submission type.
 func (o *OAuthSession) Submit(ns *NewSubmission) (*Submission, error) {
 
@@ -357,4 +437,20 @@ func (o *OAuthSession) SubredditSubmissions(subreddit string, sort popularitySor
 // Frontpage returns the submissions on the default reddit frontpage using OAuth.
 func (o *OAuthSession) Frontpage(sort popularitySort, params ListingOptions) ([]*Submission, error) {
 	return o.SubredditSubmissions("", sort, params)
+}
+
+// Vote either votes or rescinds a vote for a Submission or Comment using OAuth.
+func (o *OAuthSession) Vote(v Voter, dir vote) error {
+	// Build form for POST request.
+	form := url.Values{
+		"id":  {v.voteID()},
+		"dir": {string(dir)},
+	}
+	var foo interface{}
+
+	err := o.postBody("https://oauth.reddit.com/api/vote", form, foo)
+	if err != nil {
+		return err
+	}
+	return nil
 }
