@@ -7,6 +7,7 @@ package geddit
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -27,6 +28,7 @@ type OAuthSession struct {
 	ClientSecret string
 	OAuthConfig  *oauth2.Config
 	UserAgent    string
+	ctx          context.Context
 }
 
 // NewLoginSession creates a new session for those who want to log into a
@@ -54,11 +56,16 @@ func NewOAuthSession(clientID, clientSecret, useragent string, limit bool) (*OAu
 
 	ctx := context.Background()
 
-	// TODO offer auth code version as well as personal scripts
-	t, err := s.OAuthConfig.PasswordCredentialsToken(ctx, s.Username, s.Password)
+// LoginAuth creates the required HTTP client with a new token.
+func (o *OAuthSession) LoginAuth(username, password string) error {
+	// Fetch OAuth token.
+	t, err := o.OAuthConfig.PasswordCredentialsToken(o.ctx, username, password)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	o.Client = o.OAuthConfig.Client(o.ctx, t)
+	return nil
+}
 
 	s.Client = s.OAuthConfig.Client(ctx, t)
 	return s, nil
@@ -73,6 +80,9 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 	// This is needed to avoid rate limits
 	req.Header.Set("User-Agent", o.UserAgent)
 
+	if o.Client == nil {
+		return errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuthentication() to make one.")
+	}
 	resp, err := o.Client.Do(req)
 	if err != nil {
 		return err
@@ -235,6 +245,9 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	// POST form provided
 	req.PostForm = form
 
+	if o.Client == nil {
+		return errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuthentication() to make one.")
+	}
 	resp, err := o.Client.Do(req)
 	if err != nil {
 		return err
