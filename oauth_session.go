@@ -36,7 +36,7 @@ type OAuthSession struct {
 
 // NewLoginSession creates a new session for those who want to log into a
 // reddit account via OAuth.
-func NewOAuthSession(clientID, clientSecret, useragent string) (*OAuthSession, error) {
+func NewOAuthSession(clientID, clientSecret, useragent, redirectURL string) (*OAuthSession, error) {
 	s := &OAuthSession{}
 
 	if useragent != "" {
@@ -46,15 +46,14 @@ func NewOAuthSession(clientID, clientSecret, useragent string) (*OAuthSession, e
 	}
 
 	// Set OAuth config
-	// TODO Set user-defined scopes
 	s.OAuthConfig = &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		Scopes:       []string{}, //"identity", "read"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://oauth.reddit.com",
+			AuthURL:  "https://www.reddit.com/api/v1/authorize",
 			TokenURL: "https://www.reddit.com/api/v1/access_token",
 		},
+		RedirectURL: redirectURL,
 	}
 	s.ctx = context.Background()
 	return s, nil
@@ -94,7 +93,7 @@ func (o *OAuthSession) CodeAuth(code string) error {
 	if err != nil {
 		return err
 	}
-	o.Client = o.OAuthConfig.Client(context.Background(), t) //o.ctx, t)
+	o.Client = o.OAuthConfig.Client(context.Background(), t)
 	return nil
 }
 

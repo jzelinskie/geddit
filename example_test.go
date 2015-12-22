@@ -12,6 +12,7 @@ func ExampleNewOAuthSession_login() {
 		"client_id",
 		"client_secret",
 		"Testing OAuth Bot by u/my_user v0.1 see source https://github.com/jzelinskie/geddit",
+		"http://redirect.url",
 	)
 	if err != nil {
 		log.Fatal(err)
