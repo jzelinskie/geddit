@@ -97,6 +97,40 @@ func (o *OAuthSession) CodeAuth(code string) error {
 	return nil
 }
 
+// NeedsCaptcha check whether CAPTCHAs are needed for the Submit function.
+func (o *OAuthSession) NeedsCaptcha() (bool, error) {
+	var b bool
+	err := o.getBody("https://oauth.reddit.com/api/needs_captcha", &b)
+	if err != nil {
+		return false, err
+	}
+	return b, nil
+}
+
+// NewCaptcha returns a string used to create CAPTCHA links for users.
+func (o *OAuthSession) NewCaptcha() (string, error) {
+	// Build form for POST request.
+	v := url.Values{
+		"api_type": {"json"},
+	}
+
+	type captcha struct {
+		Json struct {
+			Errors [][]string
+			Data   struct {
+				Iden string
+			}
+		}
+	}
+	c := &captcha{}
+
+	err := o.postBody("https://oauth.reddit.com/api/new_captcha", v, c)
+	if err != nil {
+		return "", err
+	}
+	return c.Json.Data.Iden, nil
+}
+
 func (o *OAuthSession) getBody(link string, d interface{}) error {
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
