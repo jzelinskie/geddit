@@ -328,10 +328,14 @@ func (o *OAuthSession) AboutSubreddit(name string) (*Subreddit, error) {
 }
 
 // Comments returns the comments for a given Submission using OAuth.
-func (o *OAuthSession) Comments(h *Submission) ([]*Comment, error) {
+func (o *OAuthSession) Comments(h *Submission, sort popularitySort, params ListingOptions) ([]*Comment, error) {
+	p, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
 	var c interface{}
-	link := fmt.Sprintf("https://oauth.reddit.com/comments/%s", h.ID)
-	err := o.getBody(link, &c)
+	link := fmt.Sprintf("https://oauth.reddit.com/comments/%s?%s", h.ID, p.Encode())
+	err = o.getBody(link, &c)
 	if err != nil {
 		return nil, err
 	}
