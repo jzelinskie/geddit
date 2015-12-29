@@ -483,11 +483,85 @@ func (o *OAuthSession) Vote(v Voter, dir vote) error {
 		"id":  {v.voteID()},
 		"dir": {string(dir)},
 	}
-	var foo interface{}
+	var vo interface{}
 
-	err := o.postBody("https://oauth.reddit.com/api/vote", form, foo)
+	err := o.postBody("https://oauth.reddit.com/api/vote", form, vo)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// Save saves a link or comment using OAuth.
+func (o *OAuthSession) Save(v Voter, category string) error {
+	// Build form for POST request.
+	form := url.Values{
+		"id":       {v.voteID()},
+		"category": {category},
+	}
+	var s interface{}
+
+	err := o.postBody("https://oauth.reddit.com/api/save", form, s)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Unsave saves a link or comment using OAuth.
+func (o *OAuthSession) Unsave(v Voter, category string) error {
+	// Build form for POST request.
+	form := url.Values{
+		"id":       {v.voteID()},
+		"category": {category},
+	}
+	var u interface{}
+
+	err := o.postBody("https://oauth.reddit.com/api/unsave", form, u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SavedLinks fetches links saved by given username using OAuth.
+func (o *OAuthSession) SavedLinks(user string, params ListingOptions) ([]*Submission, error) {
+	type saved struct {
+		Data struct {
+			Children []struct {
+				Kind string
+				Data *Submission
+			}
+		}
+	}
+	s := &saved{}
+	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/saved", user)
+	err := o.getBody(url, s)
+	if err != nil {
+		return nil, err
+	}
+
+	var links []*Submission
+	for _, c := range s.Data.Children {
+		if c.Kind == "t1" {
+			continue
+		}
+		links = append(links, c.Data)
+	}
+	return links, nil
+
+}
+
+// SavedComments fetches comments saved by given username using OAuth.
+func (o *OAuthSession) SavedComments(user string, params ListingOptions) ([]*Comment, error) {
+	var s interface{}
+	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/saved", user)
+	err := o.getBody(url, &s)
+	if err != nil {
+		return nil, err
+	}
+
+	helper := new(helper)
+	helper.buildComments(s)
+	return helper.comments, nil
 }
