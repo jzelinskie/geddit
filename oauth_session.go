@@ -235,13 +235,13 @@ func (o *OAuthSession) MyTrophies() ([]*Trophy, error) {
 
 // Listing returns a slice of Submission pointers.
 // See https://www.reddit.com/dev/api#listings for documentation.
-func (o *OAuthSession) Listing(username, listing string, sort popularitySort, after string) ([]*Submission, error) {
-	values := &url.Values{}
-	if sort != "" {
-		values.Set("sort", string(sort))
+func (o *OAuthSession) Listing(username, listing string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+	p, err := query.Values(params)
+	if err != nil {
+		return nil, err
 	}
-	if after != "" {
-		values.Set("after", after)
+	if sort != "" {
+		p.Set("sort", string(sort))
 	}
 
 	type resp struct {
@@ -252,8 +252,8 @@ func (o *OAuthSession) Listing(username, listing string, sort popularitySort, af
 		}
 	}
 	r := &resp{}
-	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/%s?%s", username, listing, values.Encode())
-	err := o.getBody(url, r)
+	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/%s?%s", username, listing, p.Encode())
+	err = o.getBody(url, r)
 	if err != nil {
 		return nil, err
 	}
@@ -266,12 +266,16 @@ func (o *OAuthSession) Listing(username, listing string, sort popularitySort, af
 	return submissions, nil
 }
 
-func (o *OAuthSession) MyUpvoted(sort popularitySort, after string) ([]*Submission, error) {
+func (o *OAuthSession) Upvoted(username string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+	return o.Listing(username, "upvoted", sort, params)
+}
+
+func (o *OAuthSession) MyUpvoted(sort popularitySort, params ListingOptions) ([]*Submission, error) {
 	me, err := o.Me()
 	if err != nil {
 		return nil, err
 	}
-	return o.Listing(me.Name, "upvoted", sort, after)
+	return o.Listing(me.Name, "upvoted", sort, params)
 }
 
 // AboutRedditor returns a Redditor for the given username using OAuth.
@@ -525,31 +529,17 @@ func (o *OAuthSession) Unsave(v Voter, category string) error {
 }
 
 // SavedLinks fetches links saved by given username using OAuth.
-func (o *OAuthSession) SavedLinks(user string, params ListingOptions) ([]*Submission, error) {
-	type saved struct {
-		Data struct {
-			Children []struct {
-				Kind string
-				Data *Submission
-			}
-		}
-	}
-	s := &saved{}
-	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/saved", user)
-	err := o.getBody(url, s)
+func (o *OAuthSession) SavedLinks(username string, params ListingOptions) ([]*Submission, error) {
+	return o.Listing(username, "saved", "", params)
+}
+
+// MySavedLinks fetches links saved by current user using OAuth.
+func (o *OAuthSession) MySavedLinks(params ListingOptions) ([]*Submission, error) {
+	me, err := o.Me()
 	if err != nil {
 		return nil, err
 	}
-
-	var links []*Submission
-	for _, c := range s.Data.Children {
-		if c.Kind == "t1" {
-			continue
-		}
-		links = append(links, c.Data)
-	}
-	return links, nil
-
+	return o.Listing(me.Name, "saved", "", params)
 }
 
 // SavedComments fetches comments saved by given username using OAuth.
@@ -564,4 +554,13 @@ func (o *OAuthSession) SavedComments(user string, params ListingOptions) ([]*Com
 	helper := new(helper)
 	helper.buildComments(s)
 	return helper.comments, nil
+}
+
+// MySavedComments fetches comments saved by current user using OAuth.
+func (o *OAuthSession) MySavedComments(params ListingOptions) ([]*Comment, error) {
+	me, err := o.Me()
+	if err != nil {
+		return nil, err
+	}
+	return o.SavedComments(me.Name, params)
 }
