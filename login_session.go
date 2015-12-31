@@ -214,7 +214,7 @@ func (s LoginSession) Submit(ns *NewSubmission) error {
 }
 
 // Vote either votes or rescinds a vote for a Submission or Comment.
-func (s LoginSession) Vote(v Voter, vote vote) error {
+func (s LoginSession) Vote(v Voter, vote Vote) error {
 	req := &request{
 		url: "https://www.reddit.com/api/vote",
 		values: &url.Values{
