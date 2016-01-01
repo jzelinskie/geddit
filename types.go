@@ -5,10 +5,10 @@
 package geddit
 
 // vote represents the three possible states of a vote on reddit.
-type vote string
+type Vote string
 
 const (
-	UpVote     vote = "1"
+	UpVote     Vote = "1"
 	DownVote        = "-1"
 	RemoveVote      = "0"
 )
