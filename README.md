@@ -1,11 +1,11 @@
 # geddit
-a convenient abstraction for the [reddit.com](http://reddit.com) API in Go
 
-Checkout the [godoc page](http://godoc.org/github.com/jzelinskie/geddit)
+[![GoDoc](https://godoc.org/github.com/jzelinskie/geddit?status.svg)](https://godoc.org/github.com/jzelinskie/geddit)
+[![Build Status](https://api.travis-ci.org/jzelinskie/geddit.svg?branch=master)](https://travis-ci.org/jzelinskie/geddit)
 
-## warning
-
-this is a **work in progress**!
+Geddit is a convenient abstraction for the [reddit.com](http://reddit.com) API in Go.
+This library is a WIP.
+It should have some API coverage, but does not yet include things like the new OAuth model.
 
 ## example
 
