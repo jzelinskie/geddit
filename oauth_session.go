@@ -29,6 +29,7 @@ type OAuthSession struct {
 	ClientID     string
 	ClientSecret string
 	OAuthConfig  *oauth2.Config
+	TokenExpiry  time.Time
 	UserAgent    string
 	ctx          context.Context
 	throttle     *rate.RateLimiter
@@ -77,6 +78,7 @@ func (o *OAuthSession) LoginAuth(username, password string) error {
 	if err != nil {
 		return err
 	}
+	o.TokenExpiry = t.Expiry
 	o.Client = o.OAuthConfig.Client(o.ctx, t)
 	return nil
 }
