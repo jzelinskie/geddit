@@ -483,7 +483,7 @@ func (o *OAuthSession) Frontpage(sort popularitySort, params ListingOptions) ([]
 }
 
 // Vote either votes or rescinds a vote for a Submission or Comment using OAuth.
-func (o *OAuthSession) Vote(v Voter, dir vote) error {
+func (o *OAuthSession) Vote(v Voter, dir Vote) error {
 	// Build form for POST request.
 	form := url.Values{
 		"id":  {v.voteID()},
