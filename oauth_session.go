@@ -498,6 +498,46 @@ func (o *OAuthSession) Vote(v Voter, dir Vote) error {
 	return nil
 }
 
+// Reply posts a comment as a response to a Submission or Comment using OAuth.
+func (o OAuthSession) Reply(r Replier, comment string) (*Comment, error) {
+	// Build form for POST request.
+	form := url.Values{
+		"api_type":  {"json"},
+		"thing_id":  {r.replyID()},
+		"text":      {comment},
+	}
+
+	type response struct {
+		JSON struct {
+			Errors [][]string
+			Data struct {
+				Things []struct {
+					Data map[string]interface{}
+				}
+			}
+		}
+	}
+
+	res := &response{}
+
+	err := o.postBody("https://oauth.reddit.com/api/comment", form, res)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.JSON.Errors) != 0 {
+		var msg []string
+		for _, k := range res.JSON.Errors {
+			msg = append(msg, k[1])
+		}
+		return nil, errors.New(strings.Join(msg, ", "))
+	}
+
+	c := makeComment(res.JSON.Data.Things[0].Data)
+
+	return c, nil
+}
+
 // Save saves a link or comment using OAuth.
 func (o *OAuthSession) Save(v Voter, category string) error {
 	// Build form for POST request.
