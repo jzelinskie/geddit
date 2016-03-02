@@ -339,6 +339,11 @@ func (o *OAuthSession) Comments(h *Submission, sort popularitySort, params Listi
 	if err != nil {
 		return nil, err
 	}
+
+	if sort != "" {
+		p.Set("sort", string(sort))
+	}
+
 	var c interface{}
 	link := fmt.Sprintf("https://oauth.reddit.com/comments/%s?%s", h.ID, p.Encode())
 	err = o.getBody(link, &c)
@@ -502,15 +507,15 @@ func (o *OAuthSession) Vote(v Voter, dir Vote) error {
 func (o OAuthSession) Reply(r Replier, comment string) (*Comment, error) {
 	// Build form for POST request.
 	form := url.Values{
-		"api_type":  {"json"},
-		"thing_id":  {r.replyID()},
-		"text":      {comment},
+		"api_type": {"json"},
+		"thing_id": {r.replyID()},
+		"text":     {comment},
 	}
 
 	type response struct {
 		JSON struct {
 			Errors [][]string
-			Data struct {
+			Data   struct {
 				Things []struct {
 					Data map[string]interface{}
 				}
