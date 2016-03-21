@@ -27,12 +27,12 @@ func NewSession(useragent string) *Session {
 }
 
 // DefaultFrontpage returns the submissions on the default reddit frontpage.
-func (s Session) DefaultFrontpage(sort popularitySort, params ListingOptions) ([]*Submission, error) {
+func (s Session) DefaultFrontpage(sort PopularitySort, params ListingOptions) ([]*Submission, error) {
 	return s.SubredditSubmissions("", sort, params)
 }
 
 // SubredditSubmissions returns the submissions on the given subreddit.
-func (s Session) SubredditSubmissions(subreddit string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+func (s Session) SubredditSubmissions(subreddit string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
 	v, err := query.Values(params)
 	if err != nil {
 		return nil, err

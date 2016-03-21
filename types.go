@@ -40,11 +40,11 @@ func NewTextSubmission(sr, title, text string, replies bool, c *Captcha) *NewSub
 	return &NewSubmission{sr, title, text, true, replies, true, true, c}
 }
 
-// popularitySort represents the possible ways to sort submissions by popularity.
-type popularitySort string
+// PopularitySort represents the possible ways to sort submissions by popularity.
+type PopularitySort string
 
 const (
-	DefaultPopularity        popularitySort = ""
+	DefaultPopularity        PopularitySort = ""
 	HotSubmissions                          = "hot"
 	NewSubmissions                          = "new"
 	RisingSubmissions                       = "rising"
