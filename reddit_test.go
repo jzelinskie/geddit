@@ -2,12 +2,11 @@ package geddit
 
 import "testing"
 
-func TestSubmit(t *testing.T) {
-
+func TestSubmitText(t *testing.T) {
 	session, err := NewLoginSession(
 		"redditgolang",
 		"apitest11",
-		"reddit golang v0.1",
+		"reddit golang api",
 	)
 	if err != nil {
 		t.Error(err)
@@ -22,8 +21,6 @@ func TestSubmit(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	t.Log(needsCaptcha)
 
 	if needsCaptcha {
 		iden, err := session.NewCaptchaIden()
@@ -41,19 +38,9 @@ func TestSubmit(t *testing.T) {
 			t.Error(err)
 		}
 
-		err = session.Submit(NewLinkSubmission(subreddit.Name, "CAPTCHA TESTING LINK", "https://github.com/jzelinskie/reddit", true, &Captcha{iden, "test"}))
-		if err != nil {
-			t.Error(err)
-		}
-
 	} else {
 
 		err = session.Submit(NewTextSubmission(subreddit.Name, "TESTING TEXT", "TEST TEXT", true, &Captcha{}))
-		if err != nil {
-			t.Error(err)
-		}
-
-		err = session.Submit(NewLinkSubmission(subreddit.Name, "TESTING LINK", "https://github.com/jzelinskie/reddit", true, &Captcha{}))
 		if err != nil {
 			t.Error(err)
 		}
@@ -61,6 +48,48 @@ func TestSubmit(t *testing.T) {
 
 }
 
+func TestSubmitLink(t *testing.T) {
+	session, err := NewLoginSession(
+		"redditgolang2",
+		"apitest11",
+		"reddit golang api",
+	)
+	if err != nil {
+		t.Error(err)
+	}
+
+	subreddit, err := session.AboutSubreddit("mybottester")
+	if err != nil {
+		t.Error(err)
+	}
+
+	needsCaptcha, err := session.NeedsCaptcha()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if needsCaptcha {
+		iden, err := session.NewCaptchaIden()
+		if err != nil {
+			t.Error(err)
+		}
+
+		_, err = session.CaptchaImage(iden)
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = session.Submit(NewLinkSubmission(subreddit.Name, "CAPTCHA TESTING LINK", "https://github.com/jzelinskie/reddit", true, &Captcha{iden, "test"}))
+		if err != nil {
+			t.Error(err)
+		}
+	} else {
+		err = session.Submit(NewLinkSubmission(subreddit.Name, "TESTING LINK", "https://github.com/jzelinskie/reddit", true, &Captcha{}))
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
 func TestListings(t *testing.T) {
 	session, err := NewLoginSession(
 		"redditgolang",
