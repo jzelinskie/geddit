@@ -51,10 +51,10 @@ func NewLoginSession(username, password, useragent string) (*LoginSession, error
 	req.Header.Set("User-Agent", useragent)
 
 	resp, err := http.DefaultClient.Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New(resp.Status)
