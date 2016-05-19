@@ -9,7 +9,7 @@ func TestSubmitText(t *testing.T) {
 		"reddit golang api",
 	)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	subreddit, err := session.AboutSubreddit("mybottester")
