@@ -7,7 +7,7 @@ func TestSubmit(t *testing.T) {
 	session, err := NewLoginSession(
 		"redditgolang",
 		"apitest11",
-		"tester",
+		"reddit golang v0.1",
 	)
 	if err != nil {
 		t.Error(err)
