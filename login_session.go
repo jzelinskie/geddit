@@ -38,17 +38,23 @@ func NewLoginSession(username, password, useragent string) (*LoginSession, error
 		Session:   Session{useragent},
 	}
 
-	loginURL := fmt.Sprintf("https://www.reddit.com/api/login/%s", username)
-	postValues := url.Values{
+	values := &url.Values{
 		"user":     {username},
 		"passwd":   {password},
 		"api_type": {"json"},
 	}
-	resp, err := http.PostForm(loginURL, postValues)
-	defer resp.Body.Close()
+	loginURL := fmt.Sprintf("https://www.reddit.com/api/login/%s?%s", username, values.Encode())
+	req, err := http.NewRequest("POST", loginURL, nil)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User-Agent", useragent)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New(resp.Status)
