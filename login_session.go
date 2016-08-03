@@ -45,7 +45,7 @@ func NewLoginSession(username, password, useragent string) (*LoginSession, error
 		"api_type": {"json"},
 	}
 	resp, err := http.PostForm(loginURL, postValues)
-	defer resp.Body.Close()
+
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +53,8 @@ func NewLoginSession(username, password, useragent string) (*LoginSession, error
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New(resp.Status)
 	}
+
+	defer resp.Body.Close()
 
 	// Get the session cookie.
 	for _, cookie := range resp.Cookies() {

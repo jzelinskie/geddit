@@ -1,19 +1,22 @@
 package geddit
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestSubmit(t *testing.T) {
 
 	session, err := NewLoginSession(
 		"redditgolang",
 		"apitest11",
-		"tester",
+		"geddit tester v1",
 	)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	subreddit, err := session.AboutSubreddit("mybottester")
+
 	if err != nil {
 		t.Error(err)
 	}
@@ -26,6 +29,7 @@ func TestSubmit(t *testing.T) {
 	t.Log(needsCaptcha)
 
 	if needsCaptcha {
+
 		iden, err := session.NewCaptchaIden()
 		if err != nil {
 			t.Error(err)
@@ -57,6 +61,11 @@ func TestSubmit(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+
+		_, err := session.SubredditComments("all")
+		if err != nil {
+			t.Error(err)
+		}
 	}
 
 }
@@ -65,7 +74,7 @@ func TestListings(t *testing.T) {
 	session, err := NewLoginSession(
 		"redditgolang",
 		"apitest11",
-		"tester",
+		"geddit tester",
 	)
 	if err != nil {
 		t.Fatal(err)

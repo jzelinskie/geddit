@@ -108,6 +108,7 @@ func (s Session) AboutSubreddit(subreddit string) (*Subreddit, error) {
 		useragent: s.useragent,
 	}
 	body, err := req.getResponse()
+
 	if err != nil {
 		return nil, err
 	}
