@@ -44,7 +44,16 @@ func NewLoginSession(username, password, useragent string) (*LoginSession, error
 		"passwd":   {password},
 		"api_type": {"json"},
 	}
-	resp, err := http.PostForm(loginURL, postValues)
+
+	req, err := http.NewRequest("POST", loginURL, strings.NewReader(postValues.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", "useragent")
+
+	resp, err := http.DefaultClient.Do(req)
+
 	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
