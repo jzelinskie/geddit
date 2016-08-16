@@ -50,7 +50,7 @@ func NewLoginSession(username, password, useragent string) (*LoginSession, error
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", "useragent")
+	req.Header.Set("User-Agent", useragent)
 
 	resp, err := http.DefaultClient.Do(req)
 
