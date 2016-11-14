@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package reddit implements an abstraction for the reddit.com API.
+// Package geddit implements an abstraction for the reddit.com API.
 package geddit
 
 import (
