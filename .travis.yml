@@ -1,9 +1,5 @@
 language: go
 
-go:
-  - 1.5
-  - tip
-
 sudo: false
 
 notifications:
