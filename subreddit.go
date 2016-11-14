@@ -10,17 +10,17 @@ import (
 
 // Subreddit represents a subreddit from reddit.com.
 type Subreddit struct {
-	Name        string  `json:"display_name"`
-	Title       string  `json:"title"`
-	Desc        string  `json:"description"`
-	PublicDesc  string  `json:"public_description"`
-	URL         string  `json:"url"`
-	FullID      string  `json:"name"`
-	ID          string  `json:"id"`
-	HeaderImg   string  `json:"header_img"`
-	DateCreated float32 `json:"created_utc"`
-	NumSubs     int     `json:"subscribers"`
-	IsNSFW      bool    `json:"over18"`
+	Name        string `json:"display_name"`
+	Title       string `json:"title"`
+	Desc        string `json:"description"`
+	PublicDesc  string `json:"public_description"`
+	URL         string `json:"url"`
+	FullID      string `json:"name"`
+	ID          string `json:"id"`
+	HeaderImg   string `json:"header_img"`
+	DateCreated uint32 `json:"created_utc"`
+	NumSubs     int    `json:"subscribers"`
+	IsNSFW      bool   `json:"over18"`
 }
 
 // String returns the string representation of a subreddit.
