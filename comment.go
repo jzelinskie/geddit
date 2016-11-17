@@ -20,7 +20,7 @@ type Comment struct {
 	FullID              string  //`json:"name"`
 	UpVotes             float64 //`json:"ups"`
 	DownVotes           float64 //`json:"downs"`
-	Created             uint32  //`json:"created_utc"`
+	Created             float64 //`json:"created_utc"`
 	Edited              bool    //`json:"edited"`
 	BannedBy            *string //`json:"banned_by"`
 	ApprovedBy          *string //`json:"approved_by"`
@@ -52,7 +52,7 @@ func makeComment(cmap map[string]interface{}) *Comment {
 	ret.FullID, _ = cmap["name"].(string)
 	ret.UpVotes, _ = cmap["ups"].(float64)
 	ret.DownVotes, _ = cmap["downs"].(float64)
-	ret.Created, _ = cmap["created_utc"].(uint32)
+	ret.Created, _ = cmap["created_utc"].(float64)
 	ret.Edited, _ = cmap["edited"].(bool)
 	ret.BannedBy, _ = cmap["banned_by"].(*string)
 	ret.ApprovedBy, _ = cmap["approved_by"].(*string)

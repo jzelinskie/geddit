@@ -23,7 +23,7 @@ type Submission struct {
 	Permalink    string  `json:"permalink"`
 	Selftext     string  `json:"selftext"`
 	ThumbnailURL string  `json:"thumbnail"`
-	DateCreated  uint32  `json:"created_utc"`
+	DateCreated  float64 `json:"created_utc"`
 	NumComments  int     `json:"num_comments"`
 	Score        int     `json:"score"`
 	Ups          int     `json:"ups"`
