@@ -72,7 +72,7 @@ func NewOAuthSession(clientID, clientSecret, useragent, redirectURL string) (*OA
 	c := &http.Client{}
 	c.Transport = &transport{http.DefaultTransport, o.UserAgent}
 	o.ctx = context.WithValue(context.Background(), oauth2.HTTPClient, c)
-	return s, nil
+	return o, nil
 }
 
 // Throttle sets the interval of each HTTP request.
@@ -253,7 +253,7 @@ func (o *OAuthSession) MyTrophies() ([]*Trophy, error) {
 
 // Listing returns a slice of Submission pointers.
 // See https://www.reddit.com/dev/api#listings for documentation.
-func (o *OAuthSession) Listing(username, listing string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) Listing(username, listing string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
 	p, err := query.Values(params)
 	if err != nil {
 		return nil, err
@@ -284,11 +284,11 @@ func (o *OAuthSession) Listing(username, listing string, sort popularitySort, pa
 	return submissions, nil
 }
 
-func (o *OAuthSession) Upvoted(username string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) Upvoted(username string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
 	return o.Listing(username, "upvoted", sort, params)
 }
 
-func (o *OAuthSession) MyUpvoted(sort popularitySort, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) MyUpvoted(sort PopularitySort, params ListingOptions) ([]*Submission, error) {
 	me, err := o.Me()
 	if err != nil {
 		return nil, err
@@ -350,7 +350,7 @@ func (o *OAuthSession) AboutSubreddit(name string) (*Subreddit, error) {
 }
 
 // Comments returns the comments for a given Submission using OAuth.
-func (o *OAuthSession) Comments(h *Submission, sort popularitySort, params ListingOptions) ([]*Comment, error) {
+func (o *OAuthSession) Comments(h *Submission, sort PopularitySort, params ListingOptions) ([]*Comment, error) {
 	p, err := query.Values(params)
 	if err != nil {
 		return nil, err
@@ -461,7 +461,7 @@ func (o *OAuthSession) Delete(d Deleter) error {
 }
 
 // SubredditSubmissions returns the submissions on the given subreddit using OAuth.
-func (o *OAuthSession) SubredditSubmissions(subreddit string, sort popularitySort, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) SubredditSubmissions(subreddit string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
 	v, err := query.Values(params)
 	if err != nil {
 		return nil, err
@@ -499,7 +499,7 @@ func (o *OAuthSession) SubredditSubmissions(subreddit string, sort popularitySor
 }
 
 // Frontpage returns the submissions on the default reddit frontpage using OAuth.
-func (o *OAuthSession) Frontpage(sort popularitySort, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) Frontpage(sort PopularitySort, params ListingOptions) ([]*Submission, error) {
 	return o.SubredditSubmissions("", sort, params)
 }
 
