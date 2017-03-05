@@ -152,10 +152,6 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("ua=%s\n", o.UserAgent)
-
-	// This is needed to avoid rate limits
-	//req.Header.Set("User-Agent", o.UserAgent)
 
 	if o.Client == nil {
 		return errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuth() to make one.")
@@ -166,17 +162,13 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 		o.throttle.Wait()
 	}
 
-	fmt.Println("Performing request...")
 	resp, err := o.Client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	// DEBUG
 	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Printf("***DEBUG***\nRequest Body: %s\n***DEBUG***\n\n", body)
-
 	err = json.Unmarshal(body, d)
 	if err != nil {
 		return err
@@ -397,9 +389,7 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 		return err
 	}
 	defer resp.Body.Close()
-	// DEBUG
 	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Printf("***DEBUG***\nRequest Body: %s\n***DEBUG***\n\n", body)
 
 	// The caller may want JSON decoded, or this could just be an update/delete request.
 	if d != nil {
