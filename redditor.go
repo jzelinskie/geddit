@@ -14,8 +14,8 @@ type Redditor struct {
 	Created float32 `json:"created_utc"`
 	Gold    bool    `json:"is_gold"`
 	Mod     bool    `json:"is_mod"`
-	Mail    *bool   `json:"has_mail"`
-	ModMail *bool   `json:"has_mod_mail"`
+	Mail    bool    `json:"has_mail"`
+	ModMail bool    `json:"has_mod_mail"`
 	Karma
 }
 

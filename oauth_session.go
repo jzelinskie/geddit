@@ -22,6 +22,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
+type transport struct {
+	http.RoundTripper
+	useragent string
+}
+
+// Any request headers can be modified here.
+func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	req.Header.Set("User-Agent", t.useragent)
+	return t.RoundTripper.RoundTrip(req)
+}
+
 // OAuthSession represents an OAuth session with reddit.com --
 // all authenticated API calls are methods bound to this type.
 type OAuthSession struct {
@@ -29,25 +40,25 @@ type OAuthSession struct {
 	ClientID     string
 	ClientSecret string
 	OAuthConfig  *oauth2.Config
-	TokenExpiry  time.Time
-	UserAgent    string
-	ctx          context.Context
-	throttle     *rate.RateLimiter
+	//TokenExpiry  time.Time
+	UserAgent string
+	ctx       context.Context
+	throttle  *rate.RateLimiter
 }
 
-// NewLoginSession creates a new session for those who want to log into a
+// NewOAuthSession creates a new session for those who want to log into a
 // reddit account via OAuth.
 func NewOAuthSession(clientID, clientSecret, useragent, redirectURL string) (*OAuthSession, error) {
-	s := &OAuthSession{}
+	o := &OAuthSession{}
 
-	if useragent != "" {
-		s.UserAgent = useragent
+	if len(useragent) > 0 {
+		o.UserAgent = useragent
 	} else {
-		s.UserAgent = "Geddit Reddit Bot https://github.com/jzelinskie/geddit"
+		o.UserAgent = "Geddit Reddit Bot https://github.com/jzelinskie/geddit"
 	}
 
 	// Set OAuth config
-	s.OAuthConfig = &oauth2.Config{
+	o.OAuthConfig = &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Endpoint: oauth2.Endpoint{
@@ -56,7 +67,11 @@ func NewOAuthSession(clientID, clientSecret, useragent, redirectURL string) (*OA
 		},
 		RedirectURL: redirectURL,
 	}
-	s.ctx = context.Background()
+	// Inject our custom HTTP client so that a user-defined UA can
+	// be passed during any authentication requests.
+	c := &http.Client{}
+	c.Transport = &transport{http.DefaultTransport, o.UserAgent}
+	o.ctx = context.WithValue(context.Background(), oauth2.HTTPClient, c)
 	return s, nil
 }
 
@@ -78,7 +93,6 @@ func (o *OAuthSession) LoginAuth(username, password string) error {
 	if err != nil {
 		return err
 	}
-	o.TokenExpiry = t.Expiry
 	o.Client = o.OAuthConfig.Client(o.ctx, t)
 	return nil
 }
@@ -95,7 +109,7 @@ func (o *OAuthSession) CodeAuth(code string) error {
 	if err != nil {
 		return err
 	}
-	o.Client = o.OAuthConfig.Client(context.Background(), t)
+	o.Client = o.OAuthConfig.Client(o.ctx, t)
 	return nil
 }
 
@@ -138,9 +152,10 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("ua=%s\n", o.UserAgent)
 
 	// This is needed to avoid rate limits
-	req.Header.Set("User-Agent", o.UserAgent)
+	//req.Header.Set("User-Agent", o.UserAgent)
 
 	if o.Client == nil {
 		return errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuth() to make one.")
@@ -151,6 +166,7 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 		o.throttle.Wait()
 	}
 
+	fmt.Println("Performing request...")
 	resp, err := o.Client.Do(req)
 	if err != nil {
 		return err
@@ -362,7 +378,7 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	}
 
 	// This is needed to avoid rate limits
-	req.Header.Set("User-Agent", o.UserAgent)
+	//req.Header.Set("User-Agent", o.UserAgent)
 
 	// POST form provided
 	req.PostForm = form
