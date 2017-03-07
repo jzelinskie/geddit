@@ -617,3 +617,25 @@ func (o *OAuthSession) MySavedComments(params ListingOptions) ([]*Comment, error
 	}
 	return o.SavedComments(me.Name, params)
 }
+
+// MySubreddits fetchs subreddits the current user subscribes to.
+// TODO support other endpoints https://www.reddit.com/dev/api/#GET_subreddits_mine_{where}
+func (o *OAuthSession) MySubreddits() ([]*Subreddit, error) {
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Subreddit
+			}
+		}
+	}
+	r := new(Response)
+	err := o.getBody("https://oauth.reddit.com/subreddits/mine/subscriber", r)
+	if err != nil {
+		return nil, err
+	}
+	s := make([]*Subreddit, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		s[i] = child.Data
+	}
+	return s, nil
+}
