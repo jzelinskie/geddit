@@ -11,7 +11,7 @@ import (
 type Redditor struct {
 	ID      string  `json:"id"`
 	Name    string  `json:"name"`
-	Created float32 `json:"created_utc"`
+	Created float64 `json:"created_utc"`
 	Gold    bool    `json:"is_gold"`
 	Mod     bool    `json:"is_mod"`
 	Mail    bool    `json:"has_mail"`
