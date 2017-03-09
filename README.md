@@ -7,7 +7,13 @@ Geddit is a convenient abstraction for the [reddit.com](http://reddit.com) API i
 This library is a WIP.
 It should have some API coverage, but does not yet include things like the new OAuth model.
 
-## example
+## examples
+
+See [godoc](http://godoc.org/github.com/jzelinskie/geddit) for OAuth examples.
+
+Here is an example usage of the old, cookie authentication method:
+
+(NOTE: You will be heavily rate-limited by reddit's API when using cookies. Consider switching to OAuth).
 
 ```Go
 package main
