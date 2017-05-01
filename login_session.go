@@ -125,7 +125,13 @@ func (s LoginSession) Frontpage(sort PopularitySort, params ListingOptions) ([]*
 		return nil, err
 	}
 
-	redditUrl := fmt.Sprintf("https://www.reddit.com/%s/.json?%s", sort, v.Encode())
+	var redditUrl string
+
+	if sort == DefaultPopularity {
+		redditUrl = fmt.Sprintf("https://www.reddit.com/.json?%s", v.Encode())
+	} else {
+		redditUrl = fmt.Sprintf("https://www.reddit.com/%s/.json?%s", sort, v.Encode())
+	}
 
 	req := request{
 		url:       redditUrl,
