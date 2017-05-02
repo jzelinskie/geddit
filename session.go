@@ -168,3 +168,40 @@ func (s Session) CaptchaImage(iden string) (image.Image, error) {
 
 	return m, nil
 }
+
+// SubmissionInfo fetches the metadata for a string of comma-separated fullnames
+// (e.g,"t3_5pbezh,t3_5pbezh").  Uses https://www.reddit.com/dev/api/#GET_by_id_{names}
+func (s Session) SubmissionInfo(fullnameList string) ([]*Submission, error) {
+
+	redditURL := fmt.Sprintf("https://www.reddit.com/by_id/%s/.json", fullnameList)
+
+	req := &request{
+		url:       redditURL,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
+}
