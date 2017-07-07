@@ -169,6 +169,7 @@ func (s Session) CaptchaImage(iden string) (image.Image, error) {
 	return m, nil
 }
 
+// SubredditComments gets all the new comments from a subreddit, returning them in a slice of Comment structs
 func (s Session) SubredditComments(subreddit string) ([]*Comment, error) {
 	baseURL := "https://www.reddit.com"
 	
