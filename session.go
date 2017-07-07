@@ -177,7 +177,7 @@ func (s Session) SubredditComments(subreddit string) ([]*Comment, error) {
 		baseURL += "/r/" + subreddit
 	}
 	
-	subCommentsURL = baseURL + "/comments.json"
+	subCommentsURL := baseURL + "/comments.json"
 
 	req := request{
 		url:       subCommentsURL,
