@@ -639,3 +639,34 @@ func (o *OAuthSession) MySubreddits() ([]*Subreddit, error) {
 	}
 	return s, nil
 }
+
+// SubredditComments fetches all the new comments in a subreddit, and returns them in a slice of Comment structs
+// This function uses www.reddit.com instead of the OAuth API as the latter doesn't have an endpoint for a particular subreddit's comments
+func (o *OAuthSession) SubredditComments(subreddit string) ([]*Comment, error) {
+	baseURL := "https://www.reddit.com"
+
+	if subreddit != "" {
+		baseURL += "/r/" + subreddit
+	}
+
+	subCommentsURL := baseURL + "/comments.json"
+
+	req := request{
+		url:       subCommentsURL,
+		useragent: o.UserAgent,
+	}
+
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	var comments interface{}
+	if err = json.NewDecoder(body).Decode(&comments); err != nil {
+		return nil, err
+	}
+
+	helper := new(helper)
+	helper.buildComments(comments)
+	return helper.comments, nil
+}
