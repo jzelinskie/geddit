@@ -93,6 +93,15 @@ func (o *OAuthSession) LoginAuth(username, password string) error {
 	if err != nil {
 		return err
 	}
+	if !t.Valid() {
+		msg := "Invalid OAuth token"
+		if t != nil {
+			if extra := t.Extra("error"); extra != nil {
+				msg = fmt.Sprintf("%s: %s", msg, extra)
+			}
+		}
+		return errors.New(msg)
+	}
 	o.Client = o.OAuthConfig.Client(o.ctx, t)
 	return nil
 }
