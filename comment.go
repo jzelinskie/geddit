@@ -18,6 +18,8 @@ type Comment struct {
 	ParentID            string  //`json:"parent_id"`
 	SubredditID         string  //`json:"subreddit_id"`
 	FullID              string  //`json:"name"`
+	Permalink           string  //`json:"permalink"`
+	Score               float64 //`json:"score"`
 	UpVotes             float64 //`json:"ups"`
 	DownVotes           float64 //`json:"downs"`
 	Created             float64 //`json:"created_utc"`
@@ -35,6 +37,11 @@ func (c Comment) voteID() string   { return c.FullID }
 func (c Comment) deleteID() string { return c.FullID }
 func (c Comment) replyID() string  { return c.FullID }
 
+// FullPermalink returns the full URL of a Comment.
+func (c Comment) FullPermalink() string {
+	return "https://reddit.com" + c.Permalink
+}
+
 func (c Comment) String() string {
 	return fmt.Sprintf("%s (%d/%d): %s", c.Author, c.UpVotes, c.DownVotes, c.Body)
 }
@@ -50,6 +57,8 @@ func makeComment(cmap map[string]interface{}) *Comment {
 	ret.ParentID, _ = cmap["parent_id"].(string)
 	ret.SubredditID, _ = cmap["subreddit_id"].(string)
 	ret.FullID, _ = cmap["name"].(string)
+	ret.Permalink, _ = cmap["permalink"].(string)
+	ret.Score, _ = cmap["score"].(float64)
 	ret.UpVotes, _ = cmap["ups"].(float64)
 	ret.DownVotes, _ = cmap["downs"].(float64)
 	ret.Created, _ = cmap["created_utc"].(float64)
