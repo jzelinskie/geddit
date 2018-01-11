@@ -30,6 +30,17 @@ type NewSubmission struct {
 	Captcha     *Captcha
 }
 
+// Edit contains the data needed to edit a user text
+type Edit struct {
+	Text    string
+	ThingID string
+}
+
+// NewEdit returns an Edit with parameters appropriate for an edit
+func NewEdit(text string, thingID string) *Edit {
+	return &Edit{text, thingID}
+}
+
 // NewLinkSubmission returns a NewSubmission with parameters appropriate for a link submission
 func NewLinkSubmission(sr, title, link string, replies bool, c *Captcha) *NewSubmission {
 	return &NewSubmission{sr, title, link, false, replies, true, true, c}

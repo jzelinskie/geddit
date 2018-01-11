@@ -399,6 +399,7 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(body))
 
 	// The caller may want JSON decoded, or this could just be an update/delete request.
 	if d != nil {
@@ -409,6 +410,33 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	}
 
 	return nil
+}
+
+// EditUserText accepts an Edit type and edits the body text of a comment or self-post using OAuth.
+// Returns a Submission type
+func (o *OAuthSession) EditUserText(e *Edit) (*Submission, error) {
+	// Build form for POST request.
+	v := url.Values{
+		"api_type":      {"json"},
+		"return_rtjson": {"true"},
+		"text":          {e.Text},
+		"thing_id":      {e.ThingID},
+	}
+
+	type submission struct {
+		Json struct {
+			Errors [][]string
+			Data   Submission
+		}
+	}
+	submit := &submission{}
+
+	err := o.postBody("https://oauth.reddit.com/api/editusertext", v, submit)
+	if err != nil {
+		return nil, err
+	}
+	// TODO check s.Errors and do something useful?
+	return &submit.Json.Data, nil
 }
 
 // Submit accepts a NewSubmission type and submits a new link using OAuth.
