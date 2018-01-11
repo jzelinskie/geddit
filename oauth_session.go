@@ -399,7 +399,6 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
 
 	// The caller may want JSON decoded, or this could just be an update/delete request.
 	if d != nil {
