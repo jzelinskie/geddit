@@ -411,6 +411,18 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	return nil
 }
 
+// Delete accepts a thing_id and deletes a link or comment.
+// Returns an error
+func (o *OAuthSession) Delete(thingID string) error {
+	// Build form for POST request.
+	v := url.Values{
+		"id": {thingID},
+	}
+
+	return o.postBody("https://oauth.reddit.com/api/del", v, nil)
+
+}
+
 // EditUserText accepts an Edit type and edits the body text of a comment or self-post using OAuth.
 // Returns a Submission type
 func (o *OAuthSession) EditUserText(e *Edit) (*Submission, error) {
@@ -478,13 +490,13 @@ func (o *OAuthSession) Submit(ns *NewSubmission) (*Submission, error) {
 }
 
 // Delete deletes a link or comment using the given full name ID.
-func (o *OAuthSession) Delete(d Deleter) error {
-	// Build form for POST request.
-	v := url.Values{}
-	v.Add("id", d.deleteID())
+// func (o *OAuthSession) Delete(d Deleter) error {
+// 	Build form for POST request.
+// 	v := url.Values{}
+// 	v.Add("id", d.deleteID())
 
-	return o.postBody("https://oauth.reddit.com/api/del", v, nil)
-}
+// 	return o.postBody("https://oauth.reddit.com/api/del", v, nil)
+// }
 
 // SubredditSubmissions returns the submissions on the given subreddit using OAuth.
 func (o *OAuthSession) SubredditSubmissions(subreddit string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
