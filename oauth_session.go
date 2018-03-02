@@ -156,6 +156,7 @@ func (o *OAuthSession) NewCaptcha() (string, error) {
 	return c.Json.Data.Iden, nil
 }
 
+// getBody allows user to ask for custom OAuth requests
 func (o *OAuthSession) getBody(link string, d interface{}) error {
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
@@ -184,6 +185,31 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 	}
 
 	return nil
+}
+
+// GetRawRequest allows user to ask for custom OAuth requests
+func (o *OAuthSession) GetRawRequest(link string) (response []byte, err error) {
+	req, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		return response, err
+	}
+
+	if o.Client == nil {
+		return response, errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuth() to make one.")
+	}
+
+	// Throttle request
+	if o.throttle != nil {
+		o.throttle.Wait()
+	}
+
+	resp, err := o.Client.Do(req)
+	if err != nil {
+		return response, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }
 
 func (o *OAuthSession) Me() (*Redditor, error) {
