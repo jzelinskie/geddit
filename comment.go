@@ -43,7 +43,7 @@ func (c Comment) FullPermalink() string {
 }
 
 func (c Comment) String() string {
-	return fmt.Sprintf("%s (%d/%d): %s", c.Author, c.UpVotes, c.DownVotes, c.Body)
+	return fmt.Sprintf("%s (%.2f/%.2f): %s", c.Author, c.UpVotes, c.DownVotes, c.Body)
 }
 
 // makeComment tries its best to fill as many fields as possible of a Comment.
