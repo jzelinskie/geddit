@@ -205,7 +205,7 @@ func (s Session) SubredditComments(subreddit string, params ListingOptions) ([]*
 	return helper.comments, nil
 }
 
-//RedditorComments returns a slice of Comments from a given Reddit user name.
+// RedditorComments returns a slice of Comments from a given Reddit user name.
 func (s Session) RedditorComments(username string, params ListingOptions) ([]*Comment, error) {
 	v, err := query.Values(params)
 	if err != nil {
@@ -241,7 +241,7 @@ func (s Session) RedditorComments(username string, params ListingOptions) ([]*Co
 	return helper.comments, nil
 }
 
-//RedditorSubmissions returns a slice of Submissions from a given Reddit user name.
+// RedditorSubmissions returns a slice of Submissions from a given Reddit user name.
 func (s Session) RedditorSubmissions(username string, params ListingOptions) ([]*Submission, error) {
 	v, err := query.Values(params)
 	if err != nil {
