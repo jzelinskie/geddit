@@ -194,7 +194,7 @@ func (s Session) SubredditComments(subreddit string, params ListingOptions) ([]*
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var comments interface{}
 	if err = json.NewDecoder(body).Decode(&comments); err != nil {
 		return nil, err
@@ -203,4 +203,87 @@ func (s Session) SubredditComments(subreddit string, params ListingOptions) ([]*
 	helper.buildComments(comments)
 
 	return helper.comments, nil
+}
+
+//RedditorComments returns a slice of Comments from a given Reddit user name.
+func (s Session) RedditorComments(username string, params ListingOptions) ([]*Comment, error) {
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+
+	baseUrl := "https://www.reddit.com"
+
+	// If username given, add to URL
+	if username != "" {
+		baseUrl += "/user/" + username
+	}
+
+	redditUrl := fmt.Sprintf(baseUrl+"/comments.json?%s", v.Encode())
+
+	req := request{
+		url:       redditUrl,
+		useragent: s.useragent,
+	}
+
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	var comments interface{}
+	if err = json.NewDecoder(body).Decode(&comments); err != nil {
+		return nil, err
+	}
+	helper := new(helper)
+	helper.buildComments(comments)
+
+	return helper.comments, nil
+}
+
+//RedditorSubmissions returns a slice of Submissions from a given Reddit user name.
+func (s Session) RedditorSubmissions(username string, params ListingOptions) ([]*Submission, error) {
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+
+	baseUrl := "https://www.reddit.com"
+
+	// If username given, add to URL
+	if username != "" {
+		baseUrl += "/user/" + username
+	}
+
+	redditUrl := fmt.Sprintf(baseUrl+"/submitted.json?%s", v.Encode())
+
+	req := request{
+		url:       redditUrl,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	r := new(Response)
+	err = json.NewDecoder(body).Decode(r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := make([]*Submission, len(r.Data.Children))
+	for i, child := range r.Data.Children {
+		submissions[i] = child.Data
+	}
+
+	return submissions, nil
 }
