@@ -1,6 +1,7 @@
 # geddit
 
 [![GoDoc](https://godoc.org/github.com/jzelinskie/geddit?status.svg)](https://godoc.org/github.com/jzelinskie/geddit)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jzelinskie/geddit)](https://goreportcard.com/report/github.com/jzelinskie/geddit)
 [![Build Status](https://api.travis-ci.org/jzelinskie/geddit.svg?branch=master)](https://travis-ci.org/jzelinskie/geddit)
 
 Geddit is a convenient abstraction for the [reddit.com](http://reddit.com) API in Go.
