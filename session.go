@@ -78,6 +78,32 @@ func (s Session) SubredditSubmissions(subreddit string, sort PopularitySort, par
 	return submissions, nil
 }
 
+// SubmissionComments returns the comments on a submission given it's ID.
+func (s Session) SubmissionsComments(submissionID string) ([]*Comment, error) {
+	redditURL := "https://www.reddit.com"
+	redditURL += "/comments/" + submissionID
+	redditURL += ".json"
+
+	req := request{
+		url:       redditURL,
+		useragent: s.useragent,
+	}
+	body, err := req.getResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	var comments interface{}
+	err = json.NewDecoder(body).Decode(&comments)
+	if err != nil {
+		return nil, err
+	}
+	helper := new(helper)
+	helper.buildComments(comments)
+
+	return helper.comments, nil
+}
+
 // AboutRedditor returns a Redditor for the given username.
 func (s Session) AboutRedditor(username string) (*Redditor, error) {
 	req := &request{
