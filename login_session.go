@@ -376,15 +376,7 @@ func (s LoginSession) Listing(username, listing string, sort PopularitySort, aft
 		return nil, err
 	}
 
-	type Response struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-
-	r := &Response{}
+	r := &ListingResp{}
 	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
