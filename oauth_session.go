@@ -178,8 +178,10 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(body, d)
 	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(body, d); err != nil {
 		return err
 	}
 
@@ -399,6 +401,9 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 
 	// The caller may want JSON decoded, or this could just be an update/delete request.
 	if d != nil {
