@@ -154,6 +154,23 @@ func (o *OAuthSession) NewCaptcha() (string, error) {
 	}
 	return c.Json.Data.Iden, nil
 }
+func getSubredditBaseUrl(subreddit string) string {
+	var baseUrl = "https://oauth.reddit.com"
+	if subreddit != "" {
+		baseUrl = fmt.Sprintf("%s/r/%s", baseUrl, subreddit)
+	}
+	return baseUrl
+}
+
+func (o *OAuthSession) Search(search string, subreddit string) ([]*Submission, error) {
+	var c = &Submissions{}
+	url := fmt.Sprintf("%s/search?q=%s", getSubredditBaseUrl(subreddit), url.QueryEscape(search))
+	err := o.getBody(url, c)
+	if err != nil {
+		return nil, err
+	}
+	return getSubmissions(c), nil
+}
 
 func (o *OAuthSession) getBody(link string, d interface{}) error {
 	req, err := http.NewRequest("GET", link, nil)
@@ -264,26 +281,13 @@ func (o *OAuthSession) Listing(username, listing string, sort PopularitySort, pa
 		p.Set("sort", string(sort))
 	}
 
-	type resp struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-	r := &resp{}
+	r := new(Submissions)
 	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/%s?%s", username, listing, p.Encode())
 	err = o.getBody(url, r)
 	if err != nil {
 		return nil, err
 	}
-
-	submissions := make([]*Submission, len(r.Data.Children))
-	for i, child := range r.Data.Children {
-		submissions[i] = child.Data
-	}
-
-	return submissions, nil
+	return getSubmissions(r), nil
 }
 
 func (o *OAuthSession) Upvoted(username string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
@@ -479,26 +483,13 @@ func (o *OAuthSession) SubredditSubmissions(subreddit string, sort PopularitySor
 
 	redditURL := fmt.Sprintf(baseUrl+"/%s.json?%s", sort, v.Encode())
 
-	type Response struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-
-	r := new(Response)
+	r := new(Submissions)
 	err = o.getBody(redditURL, r)
 	if err != nil {
 		return nil, err
 	}
 
-	submissions := make([]*Submission, len(r.Data.Children))
-	for i, child := range r.Data.Children {
-		submissions[i] = child.Data
-	}
-
-	return submissions, nil
+	return getSubmissions(r), nil
 }
 
 // Frontpage returns the submissions on the default reddit frontpage using OAuth.

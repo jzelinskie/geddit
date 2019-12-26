@@ -143,25 +143,13 @@ func (s LoginSession) Frontpage(sort PopularitySort, params ListingOptions) ([]*
 		return nil, err
 	}
 
-	type Response struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-	r := &Response{}
+	r := new(Submissions)
 	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	submissions := make([]*Submission, len(r.Data.Children))
-	for i, child := range r.Data.Children {
-		submissions[i] = child.Data
-	}
-
-	return submissions, nil
+	return getSubmissions(r), nil
 }
 
 // Me returns an up-to-date redditor object of the logged-in user.
@@ -376,26 +364,13 @@ func (s LoginSession) Listing(username, listing string, sort PopularitySort, aft
 		return nil, err
 	}
 
-	type Response struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-
-	r := &Response{}
+	r := new(Submissions)
 	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	submissions := make([]*Submission, len(r.Data.Children))
-	for i, child := range r.Data.Children {
-		submissions[i] = child.Data
-	}
-
-	return submissions, nil
+	return getSubmissions(r), nil
 }
 
 // Fetch the Overview listing for the logged-in user
