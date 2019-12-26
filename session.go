@@ -61,7 +61,7 @@ func (s Session) SubredditSubmissions(subreddit string, sort PopularitySort, par
 	if err != nil {
 		return nil, err
 	}
-	return getSubmissions(r), nil
+	return r.Get(), nil
 }
 
 // SubmissionComments returns the comments on a submission given it's ID.
@@ -284,5 +284,5 @@ func (s Session) RedditorSubmissions(username string, params ListingOptions) ([]
 		return nil, err
 	}
 
-	return getSubmissions(r), nil
+	return r.Get(), nil
 }

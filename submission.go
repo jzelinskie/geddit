@@ -69,7 +69,7 @@ type Submissions struct {
 	}
 }
 
-func getSubmissions(s *Submissions) []*Submission {
+func (s Submissions) Get() []*Submission {
 	submissions := make([]*Submission, len(s.Data.Children))
 	for i, child := range s.Data.Children {
 		submissions[i] = child.Data

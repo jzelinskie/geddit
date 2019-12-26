@@ -163,13 +163,13 @@ func getSubredditBaseUrl(subreddit string) string {
 }
 
 func (o *OAuthSession) Search(search string, subreddit string) ([]*Submission, error) {
-	var c = &Submissions{}
+	r := new(Submissions)
 	url := fmt.Sprintf("%s/search?q=%s", getSubredditBaseUrl(subreddit), url.QueryEscape(search))
-	err := o.getBody(url, c)
+	err := o.getBody(url, r)
 	if err != nil {
 		return nil, err
 	}
-	return getSubmissions(c), nil
+	return r.Get(), nil
 }
 
 func (o *OAuthSession) getBody(link string, d interface{}) error {
@@ -287,7 +287,7 @@ func (o *OAuthSession) Listing(username, listing string, sort PopularitySort, pa
 	if err != nil {
 		return nil, err
 	}
-	return getSubmissions(r), nil
+	return r.Get(), nil
 }
 
 func (o *OAuthSession) Upvoted(username string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
@@ -489,7 +489,7 @@ func (o *OAuthSession) SubredditSubmissions(subreddit string, sort PopularitySor
 		return nil, err
 	}
 
-	return getSubmissions(r), nil
+	return r.Get(), nil
 }
 
 // Frontpage returns the submissions on the default reddit frontpage using OAuth.

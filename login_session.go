@@ -149,7 +149,7 @@ func (s LoginSession) Frontpage(sort PopularitySort, params ListingOptions) ([]*
 		return nil, err
 	}
 
-	return getSubmissions(r), nil
+	return r.Get(), nil
 }
 
 // Me returns an up-to-date redditor object of the logged-in user.
@@ -370,7 +370,7 @@ func (s LoginSession) Listing(username, listing string, sort PopularitySort, aft
 		return nil, err
 	}
 
-	return getSubmissions(r), nil
+	return r.Get(), nil
 }
 
 // Fetch the Overview listing for the logged-in user
