@@ -164,7 +164,7 @@ func getSubredditBaseUrl(subreddit string) string {
 
 func (o *OAuthSession) Search(search string, subreddit string) ([]*Submission, error) {
 	r := new(Submissions)
-	url := fmt.Sprintf("%s/search?q=%s", getSubredditBaseUrl(subreddit), url.QueryEscape(search))
+	url := fmt.Sprintf("%s/search?q=%s&restrict_sr=on", getSubredditBaseUrl(subreddit), url.QueryEscape(search))
 	err := o.getBody(url, r)
 	if err != nil {
 		return nil, err
