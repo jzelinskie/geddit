@@ -162,9 +162,20 @@ func getSubredditBaseUrl(subreddit string) string {
 	return baseUrl
 }
 
-func (o *OAuthSession) Search(search string, subreddit string) ([]*Submission, error) {
+type SearchOptions struct {
+	Subreddit string
+	Sort      string
+}
+
+func (o *OAuthSession) Search(search string, options *SearchOptions) ([]*Submission, error) {
+	if options == nil {
+		options = new(SearchOptions)
+	}
 	r := new(Submissions)
-	url := fmt.Sprintf("%s/search?q=%s&restrict_sr=on", getSubredditBaseUrl(subreddit), url.QueryEscape(search))
+	url := fmt.Sprintf("%s/search?q=%s&restrict_sr=on", getSubredditBaseUrl(options.Subreddit), url.QueryEscape(search))
+	if options.Sort != "" {
+		url = fmt.Sprintf("%s&sort=%s", url, options.Sort)
+	}
 	err := o.getBody(url, r)
 	if err != nil {
 		return nil, err
