@@ -373,6 +373,30 @@ func (o *OAuthSession) Comments(h *Submission, sort PopularitySort, params Listi
 	return helper.comments, nil
 }
 
+// Link returns the link with the given unique ID.
+func (o *OAuthSession) Link(uuid string) (*Submission, error) {
+	type resp struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+	r := &resp{}
+	url := fmt.Sprintf("https://oauth.reddit.com/by_id/t3_%s", uuid)
+
+	if err := o.getBody(url, r); err != nil {
+		return nil, err
+	}
+	if len(r.Data.Children) == 0 {
+		return nil, errors.New("No link with the given ID was found")
+	}
+	if len(r.Data.Children) > 1 {
+		return nil, errors.New("Got unexpected number of links with the given ID")
+	}
+	return r.Data.Children[0].Data, nil
+}
+
 func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) error {
 	req, err := http.NewRequest("POST", link, strings.NewReader(form.Encode()))
 	if err != nil {

@@ -80,5 +80,24 @@ func TestMe(t *testing.T) {
 		t.Fatalf("Me.String() returns unexpected result: %s", me.String())
 	}
 	fmt.Println(me)
+}
 
+func TestLink(t *testing.T) {
+	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t3_12345", "id": "12345", "title": "My Title"}}]}}`)
+	defer server.Close()
+
+	link, err := oauth.Link("12345")
+	if err != nil {
+		t.Errorf("Link() Test failed: %v", err)
+	}
+
+	if link.FullID != "t3_12345" {
+		t.Fatalf("Link() returned unexpected full ID: %s", link.FullID)
+	}
+	if link.ID != "12345" {
+		t.Fatalf("Link() returned unexpected ID: %s", link.ID)
+	}
+	if link.Title != "My Title" {
+		t.Fatalf("Link() returned unexpected title: %s", link.Title)
+	}
 }
