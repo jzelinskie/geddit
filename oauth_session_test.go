@@ -86,7 +86,7 @@ func TestLink(t *testing.T) {
 	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t3_12345", "id": "12345", "title": "My Title"}}]}}`)
 	defer server.Close()
 
-	link, err := oauth.Link("12345")
+	link, err := oauth.Link("t3_12345")
 	if err != nil {
 		t.Errorf("Link() Test failed: %v", err)
 	}
@@ -99,5 +99,28 @@ func TestLink(t *testing.T) {
 	}
 	if link.Title != "My Title" {
 		t.Fatalf("Link() returned unexpected title: %s", link.Title)
+	}
+}
+
+func TestComment(t *testing.T) {
+	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t1_12345", "author": "u/me", "body": "username checks out", "archived": false}}]}}`)
+	defer server.Close()
+
+	comment, err := oauth.Comment("", "t1_12345")
+	if err != nil {
+		t.Errorf("Comment() Test failed: %v", err)
+	}
+
+	if comment.FullID != "t1_12345" {
+		t.Fatalf("Comment() returned unexpected full ID: %s", comment.FullID)
+	}
+	if comment.Author != "u/me" {
+		t.Fatalf("Comment() returned unexpected ID: %s", comment.Author)
+	}
+	if comment.Body != "username checks out" {
+		t.Fatalf("Comment() returned unexpected title: %s", comment.Body)
+	}
+	if comment.Archived != false {
+		t.Fatalf("Comment() returned wrong archived value: %v", comment.Archived)
 	}
 }

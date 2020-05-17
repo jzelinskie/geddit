@@ -373,8 +373,8 @@ func (o *OAuthSession) Comments(h *Submission, sort PopularitySort, params Listi
 	return helper.comments, nil
 }
 
-// Link returns the link with the given unique ID.
-func (o *OAuthSession) Link(uuid string) (*Submission, error) {
+// Link returns the link with the given globally-unique full ID.
+func (o *OAuthSession) Link(fullID string) (*Submission, error) {
 	type resp struct {
 		Data struct {
 			Children []struct {
@@ -383,7 +383,7 @@ func (o *OAuthSession) Link(uuid string) (*Submission, error) {
 		}
 	}
 	r := &resp{}
-	url := fmt.Sprintf("https://oauth.reddit.com/by_id/t3_%s", uuid)
+	url := fmt.Sprintf("https://oauth.reddit.com/by_id/%s", fullID)
 
 	if err := o.getBody(url, r); err != nil {
 		return nil, err
@@ -392,9 +392,34 @@ func (o *OAuthSession) Link(uuid string) (*Submission, error) {
 		return nil, errors.New("No link with the given ID was found")
 	}
 	if len(r.Data.Children) > 1 {
-		return nil, errors.New("Got unexpected number of links with the given ID")
+		return nil, errors.New("Got unexpected number of resources with the given ID")
 	}
 	return r.Data.Children[0].Data, nil
+}
+
+// Comment returns the comment with the given globally-unique full ID.
+func (o *OAuthSession) Comment(subreddit, fullID string) (*Comment, error) {
+	baseURL := "https://oauth.reddit.com"
+	// If subbreddit given, add to URL
+	if subreddit != "" {
+		baseURL += "/r/" + subreddit
+	}
+	url := fmt.Sprintf("%s/api/info/?id=%s", baseURL, fullID)
+
+	var c interface{}
+	if err := o.getBody(url, &c); err != nil {
+		return nil, err
+	}
+	helper := new(helper)
+	helper.buildComments(c)
+
+	if len(helper.comments) == 0 {
+		return nil, errors.New("No comment with the given ID was found")
+	}
+	if len(helper.comments) > 1 {
+		return nil, errors.New("Got unexpected number of resources with the given ID")
+	}
+	return helper.comments[0], nil
 }
 
 func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) error {
