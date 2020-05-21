@@ -255,45 +255,39 @@ func (o *OAuthSession) MyTrophies() ([]*Trophy, error) {
 
 // Listing returns a slice of Submission pointers.
 // See https://www.reddit.com/dev/api#listings for documentation.
-func (o *OAuthSession) Listing(username, listing string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) Listing(username, listing string, sort PopularitySort, params ListingOptions) ([]*Submission, *ListingMeta, error) {
 	p, err := query.Values(params)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if sort != "" {
 		p.Set("sort", string(sort))
 	}
 
-	type resp struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-	r := &resp{}
+	r := &ListingResp{}
 	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/%s?%s", username, listing, p.Encode())
 	err = o.getBody(url, r)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	submissions := make([]*Submission, len(r.Data.Children))
+
 	for i, child := range r.Data.Children {
 		submissions[i] = child.Data
 	}
 
-	return submissions, nil
+	return submissions, &r.Data.ListingMeta, nil
 }
 
-func (o *OAuthSession) Upvoted(username string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) Upvoted(username string, sort PopularitySort, params ListingOptions) ([]*Submission, *ListingMeta, error) {
 	return o.Listing(username, "upvoted", sort, params)
 }
 
-func (o *OAuthSession) MyUpvoted(sort PopularitySort, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) MyUpvoted(sort PopularitySort, params ListingOptions) ([]*Submission, *ListingMeta, error) {
 	me, err := o.Me()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	return o.Listing(me.Name, "upvoted", sort, params)
 }
@@ -595,15 +589,15 @@ func (o *OAuthSession) Unsave(v Voter, category string) error {
 }
 
 // SavedLinks fetches links saved by given username using OAuth.
-func (o *OAuthSession) SavedLinks(username string, params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) SavedLinks(username string, params ListingOptions) ([]*Submission, *ListingMeta, error) {
 	return o.Listing(username, "saved", "", params)
 }
 
 // MySavedLinks fetches links saved by current user using OAuth.
-func (o *OAuthSession) MySavedLinks(params ListingOptions) ([]*Submission, error) {
+func (o *OAuthSession) MySavedLinks(params ListingOptions) ([]*Submission, *ListingMeta, error) {
 	me, err := o.Me()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	return o.Listing(me.Name, "saved", "", params)
 }
