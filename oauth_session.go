@@ -155,6 +155,7 @@ func (o *OAuthSession) NewCaptcha() (string, error) {
 	return c.Json.Data.Iden, nil
 }
 
+// getBody allows user to ask for custom OAuth requests
 func (o *OAuthSession) getBody(link string, d interface{}) error {
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
@@ -185,6 +186,31 @@ func (o *OAuthSession) getBody(link string, d interface{}) error {
 	}
 
 	return nil
+}
+
+// GetRawRequest allows user to ask for custom OAuth requests
+func (o *OAuthSession) GetRawRequest(link string) (response []byte, err error) {
+	req, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		return response, err
+	}
+
+	if o.Client == nil {
+		return response, errors.New("OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuth() to make one.")
+	}
+
+	// Throttle request
+	if o.throttle != nil {
+		o.throttle.Wait()
+	}
+
+	resp, err := o.Client.Do(req)
+	if err != nil {
+		return response, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }
 
 func (o *OAuthSession) Me() (*Redditor, error) {
@@ -415,6 +441,45 @@ func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) err
 	return nil
 }
 
+// Delete accepts a thing_id and deletes a link or comment.
+// Returns an error
+func (o *OAuthSession) Delete(thingID string) error {
+	// Build form for POST request.
+	v := url.Values{
+		"id": {thingID},
+	}
+
+	return o.postBody("https://oauth.reddit.com/api/del", v, nil)
+
+}
+
+// EditUserText accepts an Edit type and edits the body text of a comment or self-post using OAuth.
+// Returns a Submission type
+func (o *OAuthSession) EditUserText(e *Edit) (*Submission, error) {
+	// Build form for POST request.
+	v := url.Values{
+		"api_type":      {"json"},
+		"return_rtjson": {"true"},
+		"text":          {e.Text},
+		"thing_id":      {e.ThingID},
+	}
+
+	type submission struct {
+		Json struct {
+			Errors [][]string
+			Data   Submission
+		}
+	}
+	submit := &submission{}
+
+	err := o.postBody("https://oauth.reddit.com/api/editusertext", v, submit)
+	if err != nil {
+		return nil, err
+	}
+	// TODO check s.Errors and do something useful?
+	return &submit.Json.Data, nil
+}
+
 // Submit accepts a NewSubmission type and submits a new link using OAuth.
 // Returns a Submission type.
 func (o *OAuthSession) Submit(ns *NewSubmission) (*Submission, error) {
@@ -455,13 +520,13 @@ func (o *OAuthSession) Submit(ns *NewSubmission) (*Submission, error) {
 }
 
 // Delete deletes a link or comment using the given full name ID.
-func (o *OAuthSession) Delete(d Deleter) error {
-	// Build form for POST request.
-	v := url.Values{}
-	v.Add("id", d.deleteID())
+// func (o *OAuthSession) Delete(d Deleter) error {
+// 	Build form for POST request.
+// 	v := url.Values{}
+// 	v.Add("id", d.deleteID())
 
-	return o.postBody("https://oauth.reddit.com/api/del", v, nil)
-}
+// 	return o.postBody("https://oauth.reddit.com/api/del", v, nil)
+// }
 
 // SubredditSubmissions returns the submissions on the given subreddit using OAuth.
 func (o *OAuthSession) SubredditSubmissions(subreddit string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
