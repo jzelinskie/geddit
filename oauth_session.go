@@ -454,6 +454,33 @@ func (o *OAuthSession) UserPosts(subreddit, username string, sort PopularitySort
 	return submissions, nil
 }
 
+// UserComments returns the comments for the given user in the given subreddit (if provided).
+func (o *OAuthSession) UserComments(subreddit, username string, sort PopularitySort, params ListingOptions) ([]*Comment, error) {
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+	baseURL := "https://oauth.reddit.com"
+	redditURL := fmt.Sprintf("%s/user/%s/comments?sr_detail=1&sort=%s&type=links&%s", baseURL, username, sort, v.Encode())
+
+	var s interface{}
+	err = o.getBody(redditURL, &s)
+	if err != nil {
+		return nil, err
+	}
+
+	helper := new(helper)
+	helper.buildComments(s)
+
+	comments := []*Comment{}
+	for _, c := range helper.comments {
+		if subreddit != "" && strings.ToLower(c.Subreddit) == strings.ToLower(subreddit) {
+			comments = append(comments, c)
+		}
+	}
+	return comments, nil
+}
+
 func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) error {
 	req, err := http.NewRequest("POST", link, strings.NewReader(form.Encode()))
 	if err != nil {

@@ -151,3 +151,30 @@ func TestUserPosts(t *testing.T) {
 		t.Fatalf("UserPosts() returned wrong subreddit: %v", p.Subreddit)
 	}
 }
+
+func TestUserComments(t *testing.T) {
+	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t1_12345", "body": "My Body", "permalink": "www.example.com", "subreddit": "example"}}, {"data": {"name": "t1_56789", "body": "My Body", "permalink": "www.notexample.com", "subreddit": "notexample"}}]}}`)
+	defer server.Close()
+
+	comments, err := oauth.UserComments("example", "u/me", NewSubmissions, ListingOptions{})
+	if err != nil {
+		t.Errorf("UserComments() Test failed: %v", err)
+	}
+
+	if len(comments) != 1 {
+		t.Fatalf("UserComments() failed to filter by subreddit (got %d results, want %d results", len(comments), 1)
+	}
+	c := comments[0]
+	if c.FullID != "t1_12345" {
+		t.Fatalf("UserComments() returned unexpected full ID: %s", c.FullID)
+	}
+	if c.Body != "My Body" {
+		t.Fatalf("UserComments() returned unexpected body: %s", c.Author)
+	}
+	if c.Permalink != "www.example.com" {
+		t.Fatalf("UserComments() returned unexpected permalink: %s", c.Permalink)
+	}
+	if c.Subreddit != "example" {
+		t.Fatalf("UserComments() returned wrong subreddit: %v", c.Subreddit)
+	}
+}
