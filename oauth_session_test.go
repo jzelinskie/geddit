@@ -118,9 +118,36 @@ func TestComment(t *testing.T) {
 		t.Fatalf("Comment() returned unexpected ID: %s", comment.Author)
 	}
 	if comment.Body != "username checks out" {
-		t.Fatalf("Comment() returned unexpected title: %s", comment.Body)
+		t.Fatalf("Comment() returned unexpected body: %s", comment.Body)
 	}
 	if comment.Archived != false {
 		t.Fatalf("Comment() returned wrong archived value: %v", comment.Archived)
+	}
+}
+
+func TestUserPosts(t *testing.T) {
+	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t3_12345", "title": "My Title", "permalink": "www.example.com", "subreddit": "example"}}, {"data": {"name": "t3_56789", "title": "My Title", "permalink": "www.notexample.com", "subreddit": "notexample"}}]}}`)
+	defer server.Close()
+
+	posts, err := oauth.UserPosts("example", "u/me", NewSubmissions, ListingOptions{})
+	if err != nil {
+		t.Errorf("UserPosts() Test failed: %v", err)
+	}
+
+	if len(posts) != 1 {
+		t.Fatalf("UserPosts() failed to filter by subreddit (got %d results, want %d results", len(posts), 1)
+	}
+	p := posts[0]
+	if p.FullID != "t3_12345" {
+		t.Fatalf("UserPosts() returned unexpected full ID: %s", p.FullID)
+	}
+	if p.Title != "My Title" {
+		t.Fatalf("UserPosts() returned unexpected title: %s", p.Author)
+	}
+	if p.Permalink != "www.example.com" {
+		t.Fatalf("UserPosts() returned unexpected permalink: %s", p.Permalink)
+	}
+	if p.Subreddit != "example" {
+		t.Fatalf("UserPosts() returned wrong subreddit: %v", p.Subreddit)
 	}
 }

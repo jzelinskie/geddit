@@ -422,6 +422,38 @@ func (o *OAuthSession) Comment(subreddit, fullID string) (*Comment, error) {
 	return helper.comments[0], nil
 }
 
+// UserPosts returns the posts for the given user in the given subreddit (if provided).
+func (o *OAuthSession) UserPosts(subreddit, username string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+	baseURL := "https://oauth.reddit.com"
+	redditURL := fmt.Sprintf("%s/user/%s/submitted?sr_detail=1&sort=%s&type=links&%s", baseURL, username, sort, v.Encode())
+
+	r := new(Response)
+	err = o.getBody(redditURL, r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := []*Submission{}
+	for _, child := range r.Data.Children {
+		if subreddit != "" && strings.ToLower(child.Data.Subreddit) == strings.ToLower(subreddit) {
+			submissions = append(submissions, child.Data)
+		}
+	}
+	return submissions, nil
+}
+
 func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) error {
 	req, err := http.NewRequest("POST", link, strings.NewReader(form.Encode()))
 	if err != nil {
