@@ -6,6 +6,7 @@ package geddit
 
 import (
 	"fmt"
+	"time"
 )
 
 // Submission represents an individual post from the perspective
@@ -46,6 +47,10 @@ func (h *Submission) FullPermalink() string {
 	return "https://reddit.com" + h.Permalink
 }
 
+func (h *Submission) GetCreated() time.Time {
+	return time.Unix(int64(h.DateCreated), 0)
+}
+
 // String returns the string representation of a submission.
 func (h *Submission) String() string {
 	plural := ""
@@ -54,4 +59,20 @@ func (h *Submission) String() string {
 	}
 	comments := fmt.Sprintf("%d comment%s", h.NumComments, plural)
 	return fmt.Sprintf("%d - %s (%s)", h.Score, h.Title, comments)
+}
+
+type Submissions struct {
+	Data struct {
+		Children []struct {
+			Data *Submission
+		}
+	}
+}
+
+func (s Submissions) Get() []*Submission {
+	submissions := make([]*Submission, len(s.Data.Children))
+	for i, child := range s.Data.Children {
+		submissions[i] = child.Data
+	}
+	return submissions
 }

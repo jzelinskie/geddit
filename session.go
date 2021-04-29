@@ -56,26 +56,12 @@ func (s Session) SubredditSubmissions(subreddit string, sort PopularitySort, par
 		return nil, err
 	}
 
-	type Response struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-
-	r := new(Response)
+	r := new(Submissions)
 	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}
-
-	submissions := make([]*Submission, len(r.Data.Children))
-	for i, child := range r.Data.Children {
-		submissions[i] = child.Data
-	}
-
-	return submissions, nil
+	return r.Get(), nil
 }
 
 // SubmissionComments returns the comments on a submission given it's ID.
@@ -292,24 +278,11 @@ func (s Session) RedditorSubmissions(username string, params ListingOptions) ([]
 		return nil, err
 	}
 
-	type Response struct {
-		Data struct {
-			Children []struct {
-				Data *Submission
-			}
-		}
-	}
-
-	r := new(Response)
+	r := new(Submissions)
 	err = json.NewDecoder(body).Decode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	submissions := make([]*Submission, len(r.Data.Children))
-	for i, child := range r.Data.Children {
-		submissions[i] = child.Data
-	}
-
-	return submissions, nil
+	return r.Get(), nil
 }

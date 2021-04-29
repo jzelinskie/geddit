@@ -88,3 +88,11 @@ type Deleter interface {
 type Replier interface {
 	replyID() string
 }
+
+const (
+	SortRelevance = "relevance"
+	SortHot       = "hot"
+	SortTop       = "top"
+	SortNew       = "new"
+	SortComments  = "comments"
+)
