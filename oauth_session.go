@@ -611,7 +611,11 @@ func (o *OAuthSession) MySavedLinks(params ListingOptions) ([]*Submission, error
 // SavedComments fetches comments saved by given username using OAuth.
 func (o *OAuthSession) SavedComments(user string, params ListingOptions) ([]*Comment, error) {
 	var s interface{}
-	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/saved", user)
+	p, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("https://oauth.reddit.com/user/%s/saved?%s", user, p.Encode())
 	err := o.getBody(url, &s)
 	if err != nil {
 		return nil, err
