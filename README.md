@@ -1,7 +1,7 @@
 # geddit
 
-[![GoDoc](https://godoc.org/github.com/jzelinskie/geddit?status.svg)](https://godoc.org/github.com/jzelinskie/geddit)
-[![Go Report Card](https://goreportcard.com/badge/github.com/jzelinskie/geddit)](https://goreportcard.com/report/github.com/jzelinskie/geddit)
+[![GoDoc](https://godoc.org/github.com/khipkin/geddit?status.svg)](https://godoc.org/github.com/khipkin/geddit)
+[![Go Report Card](https://goreportcard.com/badge/github.com/khipkin/geddit)](https://goreportcard.com/report/github.com/khipkin/geddit)
 [![Build Status](https://api.travis-ci.org/jzelinskie/geddit.svg?branch=master)](https://travis-ci.org/jzelinskie/geddit)
 
 Geddit is a convenient abstraction for the [reddit.com](http://reddit.com) API in Go.
@@ -10,7 +10,7 @@ It should have some API coverage, but does not yet include things like the new O
 
 ## examples
 
-See [godoc](http://godoc.org/github.com/jzelinskie/geddit) for OAuth examples.
+See [godoc](http://godoc.org/github.com/khipkin/geddit) for OAuth examples.
 
 Here is an example usage of the old, cookie authentication method:
 
@@ -22,7 +22,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/jzelinskie/geddit"
+	"github.com/khipkin/geddit"
 )
 
 // Please don't handle errors this way.

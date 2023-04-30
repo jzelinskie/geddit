@@ -53,7 +53,7 @@ func NewOAuthSession(clientID, clientSecret, useragent, redirectURL string) (*OA
 	if len(useragent) > 0 {
 		o.UserAgent = useragent
 	} else {
-		o.UserAgent = "Geddit Reddit Bot https://github.com/jzelinskie/geddit"
+		o.UserAgent = "Geddit Reddit Bot https://github.com/khipkin/geddit"
 	}
 
 	// Set OAuth config
