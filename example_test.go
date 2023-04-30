@@ -45,7 +45,7 @@ func ExampleNewOAuthSession_url() {
 	// Pass a random/unique state string which will be returned to the
 	//   redirect URL. Ideally, you should verify that it matches to
 	//   avoid CSRF attack.
-	url := o.AuthCodeURL("random string", []string{"indentity", "read"})
+	url := o.AuthCodeURL("random string", []string{"identity", "read"})
 	fmt.Printf("Visit %s to obtain auth code", url)
 
 	var code string
