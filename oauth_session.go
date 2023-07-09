@@ -53,7 +53,7 @@ func NewOAuthSession(clientID, clientSecret, useragent, redirectURL string) (*OA
 	if len(useragent) > 0 {
 		o.UserAgent = useragent
 	} else {
-		o.UserAgent = "Geddit Reddit Bot https://github.com/jzelinskie/geddit"
+		o.UserAgent = "Geddit Reddit Bot https://github.com/khipkin/geddit"
 	}
 
 	// Set OAuth config
@@ -371,6 +371,114 @@ func (o *OAuthSession) Comments(h *Submission, sort PopularitySort, params Listi
 	helper := new(helper)
 	helper.buildComments(c)
 	return helper.comments, nil
+}
+
+// Link returns the link with the given globally-unique full ID.
+func (o *OAuthSession) Link(fullID string) (*Submission, error) {
+	type resp struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+	r := &resp{}
+	url := fmt.Sprintf("https://oauth.reddit.com/by_id/%s", fullID)
+
+	if err := o.getBody(url, r); err != nil {
+		return nil, err
+	}
+	if len(r.Data.Children) == 0 {
+		return nil, errors.New("No link with the given ID was found")
+	}
+	if len(r.Data.Children) > 1 {
+		return nil, errors.New("Got unexpected number of resources with the given ID")
+	}
+	return r.Data.Children[0].Data, nil
+}
+
+// Comment returns the comment with the given globally-unique full ID.
+func (o *OAuthSession) Comment(subreddit, fullID string) (*Comment, error) {
+	baseURL := "https://oauth.reddit.com"
+	// If subbreddit given, add to URL
+	if subreddit != "" {
+		baseURL += "/r/" + subreddit
+	}
+	url := fmt.Sprintf("%s/api/info/?id=%s", baseURL, fullID)
+
+	var c interface{}
+	if err := o.getBody(url, &c); err != nil {
+		return nil, err
+	}
+	helper := new(helper)
+	helper.buildComments(c)
+
+	if len(helper.comments) == 0 {
+		return nil, errors.New("No comment with the given ID was found")
+	}
+	if len(helper.comments) > 1 {
+		return nil, errors.New("Got unexpected number of resources with the given ID")
+	}
+	return helper.comments[0], nil
+}
+
+// UserPosts returns the posts for the given user in the given subreddit (if provided).
+func (o *OAuthSession) UserPosts(subreddit, username string, sort PopularitySort, params ListingOptions) ([]*Submission, error) {
+	type Response struct {
+		Data struct {
+			Children []struct {
+				Data *Submission
+			}
+		}
+	}
+
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+	baseURL := "https://oauth.reddit.com"
+	redditURL := fmt.Sprintf("%s/user/%s/submitted?sr_detail=1&sort=%s&type=links&%s", baseURL, username, sort, v.Encode())
+
+	r := new(Response)
+	err = o.getBody(redditURL, r)
+	if err != nil {
+		return nil, err
+	}
+
+	submissions := []*Submission{}
+	for _, child := range r.Data.Children {
+		if subreddit != "" && strings.ToLower(child.Data.Subreddit) == strings.ToLower(subreddit) {
+			submissions = append(submissions, child.Data)
+		}
+	}
+	return submissions, nil
+}
+
+// UserComments returns the comments for the given user in the given subreddit (if provided).
+func (o *OAuthSession) UserComments(subreddit, username string, sort PopularitySort, params ListingOptions) ([]*Comment, error) {
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+	baseURL := "https://oauth.reddit.com"
+	redditURL := fmt.Sprintf("%s/user/%s/comments?sr_detail=1&sort=%s&type=links&%s", baseURL, username, sort, v.Encode())
+
+	var s interface{}
+	err = o.getBody(redditURL, &s)
+	if err != nil {
+		return nil, err
+	}
+
+	helper := new(helper)
+	helper.buildComments(s)
+
+	comments := []*Comment{}
+	for _, c := range helper.comments {
+		if subreddit != "" && strings.ToLower(c.Subreddit) == strings.ToLower(subreddit) {
+			comments = append(comments, c)
+		}
+	}
+	return comments, nil
 }
 
 func (o *OAuthSession) postBody(link string, form url.Values, d interface{}) error {

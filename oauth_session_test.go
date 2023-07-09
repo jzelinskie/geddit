@@ -80,5 +80,101 @@ func TestMe(t *testing.T) {
 		t.Fatalf("Me.String() returns unexpected result: %s", me.String())
 	}
 	fmt.Println(me)
+}
 
+func TestLink(t *testing.T) {
+	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t3_12345", "id": "12345", "title": "My Title"}}]}}`)
+	defer server.Close()
+
+	link, err := oauth.Link("t3_12345")
+	if err != nil {
+		t.Errorf("Link() Test failed: %v", err)
+	}
+
+	if link.FullID != "t3_12345" {
+		t.Fatalf("Link() returned unexpected full ID: %s", link.FullID)
+	}
+	if link.ID != "12345" {
+		t.Fatalf("Link() returned unexpected ID: %s", link.ID)
+	}
+	if link.Title != "My Title" {
+		t.Fatalf("Link() returned unexpected title: %s", link.Title)
+	}
+}
+
+func TestComment(t *testing.T) {
+	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t1_12345", "author": "u/me", "body": "username checks out", "archived": false}}]}}`)
+	defer server.Close()
+
+	comment, err := oauth.Comment("", "t1_12345")
+	if err != nil {
+		t.Errorf("Comment() Test failed: %v", err)
+	}
+
+	if comment.FullID != "t1_12345" {
+		t.Fatalf("Comment() returned unexpected full ID: %s", comment.FullID)
+	}
+	if comment.Author != "u/me" {
+		t.Fatalf("Comment() returned unexpected ID: %s", comment.Author)
+	}
+	if comment.Body != "username checks out" {
+		t.Fatalf("Comment() returned unexpected body: %s", comment.Body)
+	}
+	if comment.Archived != false {
+		t.Fatalf("Comment() returned wrong archived value: %v", comment.Archived)
+	}
+}
+
+func TestUserPosts(t *testing.T) {
+	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t3_12345", "title": "My Title", "permalink": "www.example.com", "subreddit": "example"}}, {"data": {"name": "t3_56789", "title": "My Title", "permalink": "www.notexample.com", "subreddit": "notexample"}}]}}`)
+	defer server.Close()
+
+	posts, err := oauth.UserPosts("example", "u/me", NewSubmissions, ListingOptions{})
+	if err != nil {
+		t.Errorf("UserPosts() Test failed: %v", err)
+	}
+
+	if len(posts) != 1 {
+		t.Fatalf("UserPosts() failed to filter by subreddit (got %d results, want %d results", len(posts), 1)
+	}
+	p := posts[0]
+	if p.FullID != "t3_12345" {
+		t.Fatalf("UserPosts() returned unexpected full ID: %s", p.FullID)
+	}
+	if p.Title != "My Title" {
+		t.Fatalf("UserPosts() returned unexpected title: %s", p.Author)
+	}
+	if p.Permalink != "www.example.com" {
+		t.Fatalf("UserPosts() returned unexpected permalink: %s", p.Permalink)
+	}
+	if p.Subreddit != "example" {
+		t.Fatalf("UserPosts() returned wrong subreddit: %v", p.Subreddit)
+	}
+}
+
+func TestUserComments(t *testing.T) {
+	server, oauth := testTools(200, `{"data": {"children": [{"data": {"name": "t1_12345", "body": "My Body", "permalink": "www.example.com", "subreddit": "example"}}, {"data": {"name": "t1_56789", "body": "My Body", "permalink": "www.notexample.com", "subreddit": "notexample"}}]}}`)
+	defer server.Close()
+
+	comments, err := oauth.UserComments("example", "u/me", NewSubmissions, ListingOptions{})
+	if err != nil {
+		t.Errorf("UserComments() Test failed: %v", err)
+	}
+
+	if len(comments) != 1 {
+		t.Fatalf("UserComments() failed to filter by subreddit (got %d results, want %d results", len(comments), 1)
+	}
+	c := comments[0]
+	if c.FullID != "t1_12345" {
+		t.Fatalf("UserComments() returned unexpected full ID: %s", c.FullID)
+	}
+	if c.Body != "My Body" {
+		t.Fatalf("UserComments() returned unexpected body: %s", c.Author)
+	}
+	if c.Permalink != "www.example.com" {
+		t.Fatalf("UserComments() returned unexpected permalink: %s", c.Permalink)
+	}
+	if c.Subreddit != "example" {
+		t.Fatalf("UserComments() returned wrong subreddit: %v", c.Subreddit)
+	}
 }
